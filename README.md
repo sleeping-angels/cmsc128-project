@@ -66,4 +66,6 @@ pnpm dev
 | `pnpm --filter api auth:generate` | Regenerate Better Auth tables after config changes |
 | `pnpm format`                     | Format with Prettier                               |
 
-Commits follow [Conventional Commits](https://www.conventionalcommits.org), enforced by commitlint.
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
