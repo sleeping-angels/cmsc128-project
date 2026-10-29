@@ -15,6 +15,20 @@
       "when": 1793281499575,
       "tag": "0001_auth",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793289845958,
+      "tag": "0002_core_entities",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793289847446,
+      "tag": "0003_seed_incident_types",
+      "breakpoints": true
     }
   ]
 }
