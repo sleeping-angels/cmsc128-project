@@ -30,6 +30,8 @@ cp apps/web/.env.example apps/web/.env
 
 Set `BETTER_AUTH_SECRET` in `apps/api/.env` (`openssl rand -base64 32`).
 
+Agent skills live in `.agents/skills`. To link them for your agent (e.g. Claude Code's `.claude/skills`), run `npx skills experimental_install`.
+
 ### Database
 
 PostgreSQL with PostGIS. Either:

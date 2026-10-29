@@ -28,3 +28,11 @@ coverage
 # Misc
 .DS_Store
 *.pem
+
+# Agent skill symlinks (source of truth is .agents/skills)
+.claude/skills
+.codex/skills
+.cursor/skills
+.windsurf/skills
+.gemini/skills
+.opencode/skills
