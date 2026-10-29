@@ -8,6 +8,10 @@ const EnvSchema = z.object({
   HOST: z.string().default('0.0.0.0'),
   WEB_URL: z.url().default('http://localhost:5173'),
   DATABASE_URL: z.url(),
+  BETTER_AUTH_URL: z.url().default('http://localhost:3000'),
+  BETTER_AUTH_SECRET: z.string().min(32),
+  /** Parent domain shared by web and api in production, e.g. .example.com */
+  COOKIE_DOMAIN: z.string().optional(),
 });
 
 export const env = EnvSchema.parse(process.env);

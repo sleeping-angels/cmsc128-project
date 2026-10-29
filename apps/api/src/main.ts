@@ -7,7 +7,8 @@ import { AppModule } from './app.module.js';
 import { env } from './config/env.js';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  // Better Auth parses its own bodies; AuthModule re-adds parsers for other routes.
+  const app = await NestFactory.create(AppModule, { bodyParser: false });
 
   app.enableCors({ origin: env.WEB_URL, credentials: true });
 
