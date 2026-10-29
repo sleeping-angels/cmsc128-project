@@ -1,0 +1,30 @@
+# Dependencies
+node_modules
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Build
+dist
+dev-dist
+*.tsbuildinfo
+.turbo
+.tanstack
+
+# Testing
+coverage
+
+# Logs
+*.log
+
+# Editors
+.idea
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# Misc
+.DS_Store
+*.pem
