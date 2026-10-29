@@ -1,0 +1,8 @@
+pnpm-lock.yaml
+dist
+dev-dist
+coverage
+**/routeTree.gen.ts
+apps/api/drizzle
+.agents
+skills-lock.json
