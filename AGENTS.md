@@ -25,10 +25,11 @@ pnpm + Turborepo. Run scripts from the root (`pnpm <script>`), or one package wi
 
 ## Database
 
-- Drizzle owns every table, including Better Auth's, so `drizzle-kit` is the only migration tool.
+- Drizzle owns every table, including Better Auth's, so `drizzle-kit` is the only migration tool. The exception is Chat SDK's `chat_state_*` tables: the SDK creates them, drizzle-kit ignores them, and they hold no records.
+- Update `docs/database.md` in the same PR as any schema change.
 - `src/database/schema/auth.ts` is generated. After changing auth config or plugins, run `pnpm --filter api auth:generate`, then `pnpm db:generate`.
 - Generate migrations locally with `pnpm db:generate`; each one is reviewed SQL in `apps/api/drizzle/`. After a rebase that brings in someone else's migration, delete yours and regenerate.
-- PostGIS `geography` columns use a Drizzle `customType`; spatial queries use the `sql` template.
+- PostGIS columns are `geometry` in SRID 4326 through the `customType`s in `schema/columns.ts`; spatial queries use the `sql` template.
 - Records are permanent: record every correction in `ReportEdit` and retire rows through status (e.g. `invalid`), never `DELETE`.
 
 ## Web

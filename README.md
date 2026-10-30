@@ -45,6 +45,8 @@ Then apply migrations:
 pnpm db:migrate
 ```
 
+Schema and ERDs: [docs/database.md](docs/database.md).
+
 ### Run
 
 ```sh
