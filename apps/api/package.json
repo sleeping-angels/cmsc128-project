@@ -14,6 +14,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "db:seed": "nest build && node --env-file-if-exists=.env dist/database/seed.js",
+    "db:seed-admin": "nest build && node --env-file-if-exists=.env dist/database/seed-admin.js",
     "auth:generate": "auth generate --config src/auth/auth.ts --output src/database/schema/auth.ts --yes"
   },
   "dependencies": {
