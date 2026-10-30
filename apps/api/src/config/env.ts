@@ -12,6 +12,7 @@ const EnvSchema = z.object({
   BETTER_AUTH_SECRET: z.string().min(32),
   /** Parent domain shared by web and api in production, e.g. .example.com */
   COOKIE_DOMAIN: z.string().optional(),
+  NOMINATIM_URL: z.url().default('https://nominatim.openstreetmap.org'),
 });
 
 export const env = EnvSchema.parse(process.env);

@@ -1,12 +1,13 @@
-import { SRID, type GeoPoint } from '@repo/shared';
+import {
+  SRID,
+  type GeoMultiPolygon as MultiPolygon,
+  type GeoPoint,
+} from '@repo/shared';
 import { customType, timestamp } from 'drizzle-orm/pg-core';
 
-type Position = [number, number];
+export type { MultiPolygon };
 
-export interface MultiPolygon {
-  type: 'MultiPolygon';
-  coordinates: Position[][][];
-}
+type Position = [number, number];
 
 const WKB_POINT = 1;
 const WKB_POLYGON = 3;
