@@ -4,6 +4,7 @@ import { AuthModule } from '@thallesp/nestjs-better-auth';
 import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
 import { auth } from './auth/auth.js';
 import { DatabaseModule } from './database/database.module.js';
+import { GeoModule } from './geo/geo.module.js';
 import { HealthModule } from './health/health.module.js';
 import { RealtimeModule } from './realtime/realtime.module.js';
 
@@ -13,6 +14,7 @@ import { RealtimeModule } from './realtime/realtime.module.js';
     AuthModule.forRoot({ auth }),
     HealthModule,
     RealtimeModule,
+    GeoModule,
   ],
   providers: [
     { provide: APP_PIPE, useClass: ZodValidationPipe },
