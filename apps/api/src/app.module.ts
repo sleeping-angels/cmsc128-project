@@ -7,6 +7,7 @@ import { ChannelsModule } from './channels/channels.module.js';
 import { DatabaseModule } from './database/database.module.js';
 import { GeoModule } from './geo/geo.module.js';
 import { HealthModule } from './health/health.module.js';
+import { IntakeModule } from './intake/intake.module.js';
 import { RealtimeModule } from './realtime/realtime.module.js';
 
 @Module({
@@ -18,6 +19,7 @@ import { RealtimeModule } from './realtime/realtime.module.js';
     RealtimeModule,
     GeoModule,
     ChannelsModule,
+    IntakeModule,
   ],
   providers: [
     { provide: APP_PIPE, useClass: ZodValidationPipe },
