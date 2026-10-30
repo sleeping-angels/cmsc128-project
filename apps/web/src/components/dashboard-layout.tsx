@@ -18,6 +18,7 @@ import { NavUser } from '@/components/nav-user';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Wordmark } from '@/components/wordmark';
+import { useRealtimeConnection } from '@/hooks/use-realtime';
 
 // Placeholder until responder auth lands (#37).
 const placeholderUser = {
@@ -31,6 +32,7 @@ const navItems = [
 
 export function DashboardLayout() {
   const matchRoute = useMatchRoute();
+  useRealtimeConnection();
 
   return (
     <TooltipProvider>
