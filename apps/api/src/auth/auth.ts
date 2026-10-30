@@ -10,7 +10,8 @@ export const auth = betterAuth({
   secret: env.BETTER_AUTH_SECRET,
   trustedOrigins: [env.WEB_URL],
   database: drizzleAdapter(db, { provider: 'pg', schema }),
-  emailAndPassword: { enabled: true },
+  // Accounts come from admins (seed script, later invites), never self sign-up.
+  emailAndPassword: { enabled: true, disableSignUp: true },
   plugins: [adminPlugin],
   advanced: {
     crossSubDomainCookies: {
