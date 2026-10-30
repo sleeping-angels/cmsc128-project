@@ -183,17 +183,17 @@ Spatial columns are PostGIS `geometry` in SRID 4326. Timestamps are UTC, without
 
 ### barangay
 
-Miagao's barangays. Resolve locations and target broadcasts.
+Miagao's barangays. Resolve locations and target broadcasts. Seeded by migration from `apps/api/scripts/build-barangays.py`, which derives the flags from PSA boundaries, Project NOAH hazard maps, and Copernicus elevation data.
 
 | Column       | Type                     | Null | Default | Constraint | Description                         |
 | ------------ | ------------------------ | ---- | ------- | ---------- | ----------------------------------- |
 | `id`         | `uuid`                   | no   | random  | PK         |                                     |
 | `name`       | `text`                   | no   |         | unique     | Official name                       |
 | `centroid`   | `geometry(Point)`        | no   |         | GiST       | Pin when only the barangay is known |
-| `boundary`   | `geometry(MultiPolygon)` | yes  |         | GiST       | Null until data is found            |
+| `boundary`   | `geometry(MultiPolygon)` | yes  |         | GiST       | Seeded from PSA/NAMRIA 2023         |
 | `is_coastal` | `boolean`                | no   | `false` |            | Storm surge, gale targeting         |
 | `is_upland`  | `boolean`                | no   | `false` |            | Landslide targeting                 |
-| `hazards`    | `hazard_type[]`          | no   | `{}`    |            | From MGB hazard maps                |
+| `hazards`    | `hazard_type[]`          | no   | `{}`    |            | From Project NOAH hazard maps       |
 
 ### resident
 

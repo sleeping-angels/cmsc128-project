@@ -29,6 +29,13 @@
       "when": 1793289847446,
       "tag": "0003_seed_incident_types",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793330373980,
+      "tag": "0004_seed_barangays",
+      "breakpoints": true
     }
   ]
 }
