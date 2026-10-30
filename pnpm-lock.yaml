@@ -181,6 +181,9 @@ importers:
       '@types/react-dom':
         specifier: ^19.3.0
         version: 19.3.0(@types/react@19.3.0)
+      '@vite-pwa/assets-generator':
+        specifier: ^2.0.0
+        version: 2.0.0(@types/node@22.20.5)
       '@vitejs/plugin-react':
         specifier: ^6.1.2
         version: 6.1.2(vite@8.3.5(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))
@@ -7294,8 +7297,7 @@ snapshots:
       hashery: 1.5.1
       keyv: 5.6.0
 
-  '@canvas/image-data@1.1.0':
-    optional: true
+  '@canvas/image-data@1.1.0': {}
 
   '@chevrotain/cst-dts-gen@12.0.0':
     dependencies:
@@ -7801,8 +7803,7 @@ snapshots:
 
   '@humanwhocodes/retry@0.4.3': {}
 
-  '@img/colour@1.1.0':
-    optional: true
+  '@img/colour@1.1.0': {}
 
   '@img/sharp-darwin-arm64@0.35.5':
     optionalDependencies:
@@ -8243,7 +8244,6 @@ snapshots:
   '@quansync/fs@1.1.0':
     dependencies:
       quansync: 1.0.0
-    optional: true
 
   '@rolldown/binding-android-arm-eabi@1.2.15':
     optional: true
@@ -8945,7 +8945,6 @@ snapshots:
       unconfig: 7.5.0
     transitivePeerDependencies:
       - '@types/node'
-    optional: true
 
   '@vitejs/plugin-react@6.1.2(vite@8.3.5(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))':
     dependencies:
@@ -9376,8 +9375,7 @@ snapshots:
       dotenv: 17.4.2
       jiti: 2.7.0
 
-  cac@7.1.0:
-    optional: true
+  cac@7.1.0: {}
 
   cacheable@2.5.0:
     dependencies:
@@ -9521,8 +9519,7 @@ snapshots:
 
   confbox@0.3.2: {}
 
-  consola@3.4.2:
-    optional: true
+  consola@3.4.2: {}
 
   content-disposition@1.1.0: {}
 
@@ -9636,14 +9633,12 @@ snapshots:
     dependencies:
       '@canvas/image-data': 1.1.0
       to-data-view: 1.1.0
-    optional: true
 
   decode-ico@0.4.1:
     dependencies:
       '@canvas/image-data': 1.1.0
       decode-bmp: 0.2.1
       to-data-view: 1.1.0
-    optional: true
 
   dedent@1.7.2: {}
 
@@ -10435,8 +10430,7 @@ snapshots:
 
   husky@9.1.7: {}
 
-  ico-endec@0.1.6:
-    optional: true
+  ico-endec@0.1.6: {}
 
   iconv-lite@0.7.3:
     dependencies:
@@ -11288,8 +11282,7 @@ snapshots:
       es-define-property: 1.0.1
       side-channel: 1.1.1
 
-  quansync@1.0.0:
-    optional: true
+  quansync@1.0.0: {}
 
   queue-microtask@1.2.3: {}
 
@@ -11647,7 +11640,6 @@ snapshots:
       sharp: 0.35.5(@types/node@22.20.5)
     transitivePeerDependencies:
       - '@types/node'
-    optional: true
 
   sharp@0.35.5(@types/node@22.20.5):
     dependencies:
@@ -11681,7 +11673,6 @@ snapshots:
       '@img/sharp-win32-ia32': 0.35.5
       '@img/sharp-win32-x64': 0.35.5
       '@types/node': 22.20.5
-    optional: true
 
   shebang-command@2.0.0:
     dependencies:
@@ -11954,8 +11945,7 @@ snapshots:
     dependencies:
       tldts-core: 7.4.20
 
-  to-data-view@1.1.0:
-    optional: true
+  to-data-view@1.1.0: {}
 
   to-regex-range@5.0.1:
     dependencies:
@@ -12101,7 +12091,6 @@ snapshots:
     dependencies:
       '@quansync/fs': 1.1.0
       quansync: 1.0.0
-    optional: true
 
   unconfig@7.5.0:
     dependencies:
@@ -12110,7 +12099,6 @@ snapshots:
       jiti: 2.7.0
       quansync: 1.0.0
       unconfig-core: 7.5.0
-    optional: true
 
   undici-types@6.21.0: {}
 

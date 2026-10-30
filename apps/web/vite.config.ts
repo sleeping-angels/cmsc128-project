@@ -13,11 +13,19 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
+      pwaAssets: { config: true },
       manifest: {
         name: 'MIGO',
         short_name: 'MIGO',
+        description: 'MDRRMO Miagao incident reporting and response',
+        lang: 'en',
         start_url: '/',
         display: 'standalone',
+        theme_color: '#233052',
+        background_color: '#ffffff',
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
       },
     }),
   ],
