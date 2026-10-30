@@ -1,14 +1,16 @@
-import { APP_NAME } from '@repo/shared';
-import { Logo } from './logo';
+import { Link } from '@tanstack/react-router';
+import { buttonVariants } from '@/components/ui/button';
+import { Wordmark } from './wordmark';
 
 export function Home() {
   return (
-    <main className="flex min-h-svh items-center justify-center">
-      <h1 className="flex items-center text-primary text-4xl font-bold">
-        {APP_NAME.slice(0, -1)}
-        <Logo className="ml-0.5 size-[0.9em]" />
-        <span className="sr-only">{APP_NAME.slice(-1)}</span>
+    <div className="flex flex-col items-start gap-4">
+      <h1>
+        <Wordmark className="text-4xl" />
       </h1>
-    </main>
+      <Link to="/dashboard" className={buttonVariants()}>
+        Responder dashboard
+      </Link>
+    </div>
   );
 }
