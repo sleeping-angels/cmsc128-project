@@ -15,6 +15,7 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { NavUser } from '@/components/nav-user';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Wordmark } from '@/components/wordmark';
 
@@ -75,6 +76,9 @@ export function DashboardLayout() {
         <SidebarInset>
           <header className="flex h-14 items-center gap-2 border-b px-4">
             <SidebarTrigger />
+            <div className="ml-auto">
+              <ThemeToggle />
+            </div>
           </header>
           <main className="flex-1 p-4">
             <Outlet />

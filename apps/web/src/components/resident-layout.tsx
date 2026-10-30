@@ -1,4 +1,5 @@
 import { Link, Outlet } from '@tanstack/react-router';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { Wordmark } from '@/components/wordmark';
 
 export function ResidentLayout() {
@@ -9,6 +10,7 @@ export function ResidentLayout() {
           <Link to="/">
             <Wordmark className="text-xl" />
           </Link>
+          <ThemeToggle />
         </div>
       </header>
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6">
