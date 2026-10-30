@@ -243,25 +243,25 @@ Kinds of incident a report can have. Seeded by migration; admins add types and r
 
 An incident report. The sender is always `resident_id`; `is_proxy` marks reports about someone else.
 
-| Column                 | Type              | Null | Default   | Constraint                     | Description                          |
-| ---------------------- | ----------------- | ---- | --------- | ------------------------------ | ------------------------------------ |
-| `id`                   | `uuid`            | no   | random    | PK                             |                                      |
-| `tracking_token`       | `text`            | no   | generated | unique                         | 128-bit, base64url; `/status/:token` |
-| `resident_id`          | `uuid`            | no   |           | FK → `resident`, index         | Always the sender                    |
-| `is_proxy`             | `boolean`         | no   | `false`   |                                | About someone else                   |
-| `reviewed_by`          | `text`            | yes  |           | FK → `user`                    |                                      |
-| `status`               | `report_status`   | no   | `pending` | index (`status`, `created_at`) |                                      |
-| `incident_type_id`     | `uuid`            | yes  |           | FK → `incident_type`, index    |                                      |
-| `severity`             | `severity_level`  | yes  |           |                                |                                      |
-| `barangay_id`          | `uuid`            | yes  |           | FK → `barangay`, index         |                                      |
-| `location_text`        | `text`            | yes  |           |                                | As reported                          |
-| `location`             | `geometry(Point)` | yes  |           | GiST                           |                                      |
-| `incident_at`          | `timestamp`       | yes  |           |                                |                                      |
-| `source_channel`       | `source_channel`  | no   |           |                                |                                      |
-| `parsed_automatically` | `boolean`         | no   | `false`   |                                | False for form reports               |
-| `parse_confidence`     | `jsonb`           | yes  |           |                                | Per-field classifier confidence      |
-| `created_at`           | `timestamp`       | no   | `now()`   |                                |                                      |
-| `updated_at`           | `timestamp`       | no   | `now()`   |                                | Updated by Drizzle                   |
+| Column                 | Type              | Null | Default   | Constraint                     | Description                                 |
+| ---------------------- | ----------------- | ---- | --------- | ------------------------------ | ------------------------------------------- |
+| `id`                   | `uuid`            | no   | random    | PK                             |                                             |
+| `tracking_token`       | `text`            | no   | generated | unique                         | 128-bit, base64url; `/status/:token`        |
+| `resident_id`          | `uuid`            | no   |           | FK → `resident`, index         | Always the sender                           |
+| `is_proxy`             | `boolean`         | no   | `false`   |                                | About someone else                          |
+| `reviewed_by`          | `text`            | yes  |           | FK → `user`                    |                                             |
+| `status`               | `report_status`   | no   | `pending` | index (`status`, `created_at`) |                                             |
+| `incident_type_id`     | `uuid`            | yes  |           | FK → `incident_type`, index    |                                             |
+| `severity`             | `severity_level`  | yes  |           |                                |                                             |
+| `barangay_id`          | `uuid`            | yes  |           | FK → `barangay`, index         |                                             |
+| `location_text`        | `text`            | yes  |           |                                | As reported                                 |
+| `location`             | `geometry(Point)` | yes  |           | GiST                           |                                             |
+| `incident_at`          | `timestamp`       | yes  |           |                                |                                             |
+| `source_channel`       | `source_channel`  | no   |           |                                |                                             |
+| `parsed_automatically` | `boolean`         | no   | `false`   |                                | False for form reports                      |
+| `parse_confidence`     | `jsonb`           | yes  |           |                                | Field → confidence, `parseConfidenceSchema` |
+| `created_at`           | `timestamp`       | no   | `now()`   |                                |                                             |
+| `updated_at`           | `timestamp`       | no   | `now()`   |                                | Updated by Drizzle                          |
 
 ### victim
 
