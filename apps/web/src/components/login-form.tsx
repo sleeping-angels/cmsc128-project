@@ -1,4 +1,5 @@
-import { useNavigate } from '@tanstack/react-router';
+import { useQueryClient } from '@tanstack/react-query';
+import { getRouteApi, useNavigate } from '@tanstack/react-router';
 import { type FormEvent, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,9 +18,14 @@ import {
 import { Input } from '@/components/ui/input';
 import { Wordmark } from '@/components/wordmark';
 import { authClient } from '@/lib/auth-client';
+import { sessionQuery } from '@/lib/session';
+
+const route = getRouteApi('/login');
 
 export function LoginForm() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const search = route.useSearch();
   const [error, setError] = useState<string>();
   const [pending, setPending] = useState(false);
 
@@ -36,7 +42,10 @@ export function LoginForm() {
       setError(error.message ?? 'Sign-in failed.');
       return;
     }
-    await navigate({ to: '/dashboard' });
+    // The cache may still hold "signed out" from before; drop it so the
+    // dashboard guard fetches the new session.
+    queryClient.removeQueries({ queryKey: sessionQuery.queryKey });
+    await navigate({ href: search.redirect ?? '/dashboard' });
   }
 
   return (
