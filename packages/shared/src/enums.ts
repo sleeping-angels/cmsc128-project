@@ -39,3 +39,6 @@ export type SeverityLevel = z.infer<typeof severityLevelSchema>;
 
 export const directionSchema = z.enum(['inbound', 'outbound']);
 export type Direction = z.infer<typeof directionSchema>;
+
+export const userRoleSchema = z.enum(['admin', 'responder']);
+export type UserRole = z.infer<typeof userRoleSchema>;
