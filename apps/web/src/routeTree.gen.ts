@@ -9,50 +9,124 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as ResidentRouteRouteImport } from './routes/_resident/route'
+import { Route as ResidentIndexRouteImport } from './routes/_resident/index'
+import { Route as DashboardAppRouteRouteImport } from './routes/dashboard/_app/route'
+import { Route as DashboardAppIndexRouteImport } from './routes/dashboard/_app/index'
 
-const IndexRoute = IndexRouteImport.update({
+const ResidentRouteRoute = ResidentRouteRouteImport.update({
+  id: '/_resident',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResidentIndexRoute = ResidentIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => ResidentRouteRoute,
+} as any)
+const DashboardAppRouteRoute = DashboardAppRouteRouteImport.update({
+  id: '/dashboard/_app',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardAppIndexRoute = DashboardAppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardAppRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof ResidentIndexRoute
+  '/dashboard': typeof DashboardAppRouteRouteWithChildren
+  '/dashboard/': typeof DashboardAppIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/': typeof ResidentIndexRoute
+  '/dashboard': typeof DashboardAppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_resident': typeof ResidentRouteRouteWithChildren
+  '/dashboard/_app': typeof DashboardAppRouteRouteWithChildren
+  '/_resident/': typeof ResidentIndexRoute
+  '/dashboard/_app/': typeof DashboardAppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/dashboard' | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/dashboard'
+  id:
+    | '__root__'
+    | '/_resident'
+    | '/dashboard/_app'
+    | '/_resident/'
+    | '/dashboard/_app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  ResidentRouteRoute: typeof ResidentRouteRouteWithChildren
+  DashboardAppRouteRoute: typeof DashboardAppRouteRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/_resident': {
+      id: '/_resident'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof ResidentRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_resident/': {
+      id: '/_resident/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof ResidentIndexRouteImport
+      parentRoute: typeof ResidentRouteRoute
+    }
+    '/dashboard/_app': {
+      id: '/dashboard/_app'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardAppRouteRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/_app/': {
+      id: '/dashboard/_app/'
+      path: '/'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardAppIndexRouteImport
+      parentRoute: typeof DashboardAppRouteRoute
     }
   }
 }
 
+interface ResidentRouteRouteChildren {
+  ResidentIndexRoute: typeof ResidentIndexRoute
+}
+
+const ResidentRouteRouteChildren: ResidentRouteRouteChildren = {
+  ResidentIndexRoute: ResidentIndexRoute,
+}
+
+const ResidentRouteRouteWithChildren = ResidentRouteRoute._addFileChildren(
+  ResidentRouteRouteChildren,
+)
+
+interface DashboardAppRouteRouteChildren {
+  DashboardAppIndexRoute: typeof DashboardAppIndexRoute
+}
+
+const DashboardAppRouteRouteChildren: DashboardAppRouteRouteChildren = {
+  DashboardAppIndexRoute: DashboardAppIndexRoute,
+}
+
+const DashboardAppRouteRouteWithChildren =
+  DashboardAppRouteRoute._addFileChildren(DashboardAppRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  ResidentRouteRoute: ResidentRouteRouteWithChildren,
+  DashboardAppRouteRoute: DashboardAppRouteRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
