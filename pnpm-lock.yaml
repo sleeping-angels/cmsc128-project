@@ -123,6 +123,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@fontsource-variable/public-sans':
+        specifier: ^5.3.0
+        version: 5.3.0
       '@repo/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -1620,6 +1623,9 @@ packages:
 
   '@floating-ui/utils@0.2.12':
     resolution: {integrity: sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==}
+
+  '@fontsource-variable/public-sans@5.3.0':
+    resolution: {integrity: sha512-AVfkmAt50BMXWpOO21FAntiJFKGX6xTc2dSL8dxtDteONe9IuRXJWGbs0EbG955vAMCq23ENeuopuW87cGWDSQ==}
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -8276,6 +8282,8 @@ snapshots:
       react-dom: 19.3.1(react@19.3.1)
 
   '@floating-ui/utils@0.2.12': {}
+
+  '@fontsource-variable/public-sans@5.3.0': {}
 
   '@humanfs/core@0.19.2':
     dependencies:
