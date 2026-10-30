@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import { ConsoleLogger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { cleanupOpenApiDoc } from 'nestjs-zod';
@@ -8,7 +9,13 @@ import { env } from './config/env.js';
 
 async function bootstrap() {
   // Better Auth parses its own bodies; AuthModule re-adds parsers for other routes.
-  const app = await NestFactory.create(AppModule, { bodyParser: false });
+  const app = await NestFactory.create(AppModule, {
+    bodyParser: false,
+    // One JSON object per line, so hosted log search can filter by field.
+    ...(env.NODE_ENV === 'production' && {
+      logger: new ConsoleLogger({ json: true }),
+    }),
+  });
 
   app.enableCors({ origin: env.WEB_URL, credentials: true });
 
