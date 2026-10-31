@@ -45,6 +45,19 @@ Then apply migrations:
 pnpm db:migrate
 ```
 
+Public sign-up is disabled, so create dashboard accounts with the seed script
+(local development use case only):
+
+```sh
+pnpm --filter api db:seed-user admin@migo.local 12345678 "MIGO Admin"
+pnpm --filter api db:seed-user responder@migo.local 12345678 "MIGO Responder" responder
+```
+
+| Role      | Email                  | Password   |
+| --------- | ---------------------- | ---------- |
+| Admin     | `admin@migo.local`     | `12345678` |
+| Responder | `responder@migo.local` | `12345678` |
+
 Schema and ERDs: [docs/database.md](docs/database.md).
 
 ### Run
@@ -67,6 +80,7 @@ pnpm dev
 | `pnpm test`                       | Run tests (Vitest)                                 |
 | `pnpm db:generate`                | Generate a migration from the Drizzle schema       |
 | `pnpm db:migrate`                 | Apply migrations                                   |
+| `pnpm --filter api db:seed-user`  | Create a dashboard account (see Database)          |
 | `pnpm --filter api auth:generate` | Regenerate Better Auth tables after config changes |
 | `pnpm format`                     | Format with Prettier                               |
 
