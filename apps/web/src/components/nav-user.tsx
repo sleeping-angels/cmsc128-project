@@ -1,3 +1,5 @@
+import { useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from '@tanstack/react-router';
 import { ChevronsUpDownIcon, LogOutIcon, SettingsIcon } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -15,6 +17,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { authClient } from '@/lib/auth-client';
 
 type User = { name: string; email: string; avatar?: string };
 
@@ -44,6 +47,15 @@ function UserSummary({ user }: { user: User }) {
 
 export function NavUser({ user }: { user: User }) {
   const { isMobile } = useSidebar();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  async function logOut() {
+    await authClient.signOut();
+    // Drop every cached query so the next person on this device starts clean.
+    queryClient.clear();
+    await navigate({ to: '/login' });
+  }
 
   return (
     <SidebarMenu>
@@ -76,7 +88,7 @@ export function NavUser({ user }: { user: User }) {
               Settings
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={logOut}>
               <LogOutIcon />
               Log out
             </DropdownMenuItem>

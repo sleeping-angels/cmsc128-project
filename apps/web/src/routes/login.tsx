@@ -10,7 +10,9 @@ function safePath(value: unknown) {
 }
 
 export const Route = createFileRoute('/login')({
-  validateSearch: (search) => ({ redirect: safePath(search.redirect) }),
+  validateSearch: (search): { redirect?: string } => ({
+    redirect: safePath(search.redirect),
+  }),
   beforeLoad: async ({ context, search }) => {
     if (await context.queryClient.ensureQueryData(sessionQuery)) {
       throw redirect({ href: search.redirect ?? '/dashboard' });
