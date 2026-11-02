@@ -2,6 +2,7 @@ import { createMessengerAdapter } from '@chat-adapter/messenger';
 import { APP_NAME } from '@repo/shared';
 import { type Adapter, Chat, type StateAdapter } from 'chat';
 import { env } from '../config/env.js';
+import { ChatLogger } from './chat-logger.js';
 
 export const BOT = Symbol('BOT');
 
@@ -18,6 +19,7 @@ function adapters() {
       appSecret,
       pageAccessToken,
       verifyToken,
+      logger: new ChatLogger().child('messenger'),
     });
   }
   return result;
@@ -30,5 +32,6 @@ export function createBot(state: StateAdapter): Bot {
     state,
     // Every message must reach the Message table; the default drops overlaps.
     concurrency: 'concurrent',
+    logger: new ChatLogger(),
   });
 }
