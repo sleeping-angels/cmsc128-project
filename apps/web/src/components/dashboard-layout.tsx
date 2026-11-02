@@ -1,4 +1,9 @@
-import { Link, Outlet, useMatchRoute } from '@tanstack/react-router';
+import {
+  getRouteApi,
+  Link,
+  Outlet,
+  useMatchRoute,
+} from '@tanstack/react-router';
 import { LayoutDashboard } from 'lucide-react';
 import {
   Sidebar,
@@ -20,11 +25,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { Wordmark } from '@/components/wordmark';
 import { useRealtimeConnection } from '@/hooks/use-realtime';
 
-// Placeholder until responder auth lands (#37).
-const placeholderUser = {
-  name: 'Juan dela Cruz',
-  email: 'responder@example.com',
-};
+const route = getRouteApi('/dashboard/_app');
 
 const navItems = [
   { to: '/dashboard', label: 'Home', icon: LayoutDashboard },
@@ -32,6 +33,7 @@ const navItems = [
 
 export function DashboardLayout() {
   const matchRoute = useMatchRoute();
+  const { session } = route.useRouteContext();
   useRealtimeConnection();
 
   return (
@@ -72,7 +74,13 @@ export function DashboardLayout() {
             </SidebarGroup>
           </SidebarContent>
           <SidebarFooter>
-            <NavUser user={placeholderUser} />
+            <NavUser
+              user={{
+                name: session.user.name,
+                email: session.user.email,
+                avatar: session.user.image ?? undefined,
+              }}
+            />
           </SidebarFooter>
         </Sidebar>
         <SidebarInset>
