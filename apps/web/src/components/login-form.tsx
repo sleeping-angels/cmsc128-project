@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { getRouteApi, useNavigate } from '@tanstack/react-router';
+import { getRouteApi, Link, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useForm } from '@tanstack/react-form';
 import { Button } from '@/components/ui/button';
@@ -61,7 +61,9 @@ export function LoginForm() {
 
   return (
     <main className="flex min-h-svh flex-col items-center justify-center gap-6 p-6">
-      <Wordmark className="text-3xl" />
+      <Link to="/">
+        <Wordmark className="text-3xl" />
+      </Link>
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>Responder sign-in</CardTitle>
