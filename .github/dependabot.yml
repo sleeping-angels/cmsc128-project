@@ -1,0 +1,38 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directories:
+      - /
+      - /apps/*
+      - /packages/*
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      minor-and-patch:
+        patterns: ['*']
+        update-types: [minor, patch]
+    # Deliberate pins (AGENTS.md).
+    ignore:
+      # nestjs-zod lacks NestJS 12 support.
+      - dependency-name: '@nestjs/*'
+        update-types: ['version-update:semver-major']
+      - dependency-name: typescript
+        update-types:
+          ['version-update:semver-major', 'version-update:semver-minor']
+      # 0.x: minor versions break. drizzle-kit is released alongside drizzle-orm.
+      - dependency-name: drizzle-orm
+        update-types:
+          ['version-update:semver-major', 'version-update:semver-minor']
+      - dependency-name: drizzle-kit
+        update-types:
+          ['version-update:semver-major', 'version-update:semver-minor']
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ci
