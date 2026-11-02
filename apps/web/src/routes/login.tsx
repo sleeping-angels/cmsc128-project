@@ -1,5 +1,6 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { LoginForm } from '@/components/login-form';
+import { RouteError } from '@/components/route-error';
 import { sessionQuery } from '@/lib/session';
 
 /**
@@ -23,9 +24,14 @@ export const Route = createFileRoute('/login')({
     redirect: safePath(search.redirect),
   }),
   beforeLoad: async ({ context, search }) => {
-    if (await context.queryClient.ensureQueryData(sessionQuery)) {
+    const session = await context.queryClient.ensureQueryData({
+      ...sessionQuery,
+      revalidateIfStale: true,
+    });
+    if (session) {
       throw redirect({ href: search.redirect ?? '/dashboard' });
     }
   },
   component: LoginForm,
+  errorComponent: RouteError,
 });
