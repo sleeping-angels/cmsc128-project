@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { ChevronsUpDownIcon, LogOutIcon, SettingsIcon } from 'lucide-react';
+import { toast } from 'sonner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -51,7 +52,15 @@ export function NavUser({ user }: { user: User }) {
   const queryClient = useQueryClient();
 
   async function logOut() {
-    await authClient.signOut();
+    // If sign-out fails the session is still valid, and /login would bounce
+    // straight back to the dashboard. Stay put and say so instead.
+    try {
+      const { error } = await authClient.signOut();
+      if (error) throw error;
+    } catch {
+      toast.error("Couldn't log out. Try again.");
+      return;
+    }
     // Drop every cached query so the next person on this device starts clean.
     queryClient.clear();
     await navigate({ to: '/login' });
