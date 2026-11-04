@@ -1,4 +1,6 @@
 import {
+  broadcastKindSchema,
+  deliveryStatusSchema,
   directionSchema,
   hazardTypeSchema,
   languageSchema,
@@ -26,3 +28,11 @@ export const severityLevel = pgEnum(
   values(severityLevelSchema),
 );
 export const direction = pgEnum('direction', values(directionSchema));
+export const broadcastKind = pgEnum(
+  'broadcast_kind',
+  values(broadcastKindSchema),
+);
+export const deliveryStatus = pgEnum(
+  'delivery_status',
+  values(deliveryStatusSchema),
+);

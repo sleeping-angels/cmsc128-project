@@ -68,7 +68,9 @@ export async function findFeedItems(
     columns: {
       trackingToken: false,
       residentId: false,
+      createdBy: false,
       reviewedBy: false,
+      duplicateOfId: false,
       incidentTypeId: false,
       barangayId: false,
     },

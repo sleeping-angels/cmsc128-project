@@ -119,4 +119,26 @@ describe('reportFeedItemSchema', () => {
       '2026-10-29T08:30:00.000Z',
     );
   });
+
+  it('allows a report with no resident', () => {
+    const item = reportFeedItemSchema.decode({
+      id: residentId,
+      status: 'pending',
+      isProxy: false,
+      incidentType: null,
+      severity: null,
+      barangay: null,
+      locationText: null,
+      location: null,
+      incidentAt: null,
+      sourceChannel: 'dashboard',
+      parsedAutomatically: false,
+      parseConfidence: null,
+      resident: null,
+      victimCount: 0,
+      createdAt: '2026-10-29T08:30:00.000Z',
+      updatedAt: '2026-10-29T08:30:00.000Z',
+    });
+    expect(item.resident).toBeNull();
+  });
 });

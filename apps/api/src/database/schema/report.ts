@@ -6,11 +6,13 @@ import {
   index,
   integer,
   jsonb,
+  type AnyPgColumn,
   pgTable,
   text,
   timestamp,
   uuid,
 } from 'drizzle-orm/pg-core';
+import { agencyReferral } from './agency.js';
 import { user } from './auth.js';
 import { barangay } from './barangay.js';
 import { geometryPoint, timestamps } from './columns.js';
@@ -33,13 +35,23 @@ export const report = pgTable(
       .notNull()
       .unique()
       .$defaultFn(() => randomBytes(16).toString('base64url')),
-    residentId: uuid('resident_id')
-      .notNull()
-      .references(() => resident.id, { onDelete: 'restrict' }),
+    /** Null only for responder-created reports from an unknown caller. */
+    residentId: uuid('resident_id').references(() => resident.id, {
+      onDelete: 'restrict',
+    }),
     isProxy: boolean('is_proxy').default(false).notNull(),
+    /** The responder who entered it; null for resident reports. */
+    createdBy: text('created_by').references(() => user.id, {
+      onDelete: 'restrict',
+    }),
     reviewedBy: text('reviewed_by').references(() => user.id, {
       onDelete: 'restrict',
     }),
+    /** The report this one repeats. */
+    duplicateOfId: uuid('duplicate_of_id').references(
+      (): AnyPgColumn => report.id,
+      { onDelete: 'restrict' },
+    ),
     status: reportStatus('status').default('pending').notNull(),
     incidentTypeId: uuid('incident_type_id').references(() => incidentType.id, {
       onDelete: 'restrict',
@@ -63,6 +75,7 @@ export const report = pgTable(
     index('report_status_created_at_idx').on(table.status, table.createdAt),
     index('report_incident_type_id_idx').on(table.incidentTypeId),
     index('report_barangay_id_idx').on(table.barangayId),
+    index('report_duplicate_of_id_idx').on(table.duplicateOfId),
     index('report_location_idx').using('gist', table.location),
   ],
 );
@@ -84,6 +97,29 @@ export const victim = pgTable(
   ],
 );
 
+export const reportEdit = pgTable(
+  'report_edit',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    reportId: uuid('report_id')
+      .notNull()
+      .references(() => report.id, { onDelete: 'restrict' }),
+    responderId: text('responder_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'restrict' }),
+    field: text('field').notNull(),
+    oldValue: jsonb('old_value'),
+    newValue: jsonb('new_value'),
+    editedAt: timestamp('edited_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index('report_edit_report_id_edited_at_idx').on(
+      table.reportId,
+      table.editedAt,
+    ),
+  ],
+);
+
 export const incidentTypeRelations = relations(incidentType, ({ many }) => ({
   reports: many(report),
 }));
@@ -93,10 +129,22 @@ export const reportRelations = relations(report, ({ one, many }) => ({
     fields: [report.residentId],
     references: [resident.id],
   }),
+  creator: one(user, {
+    fields: [report.createdBy],
+    references: [user.id],
+    relationName: 'report_creator',
+  }),
   reviewer: one(user, {
     fields: [report.reviewedBy],
     references: [user.id],
+    relationName: 'report_reviewer',
   }),
+  duplicateOf: one(report, {
+    fields: [report.duplicateOfId],
+    references: [report.id],
+    relationName: 'report_duplicate',
+  }),
+  duplicates: many(report, { relationName: 'report_duplicate' }),
   incidentType: one(incidentType, {
     fields: [report.incidentTypeId],
     references: [incidentType.id],
@@ -107,11 +155,24 @@ export const reportRelations = relations(report, ({ one, many }) => ({
   }),
   victims: many(victim),
   messages: many(message),
+  edits: many(reportEdit),
+  referrals: many(agencyReferral),
 }));
 
 export const victimRelations = relations(victim, ({ one }) => ({
   report: one(report, {
     fields: [victim.reportId],
     references: [report.id],
+  }),
+}));
+
+export const reportEditRelations = relations(reportEdit, ({ one }) => ({
+  report: one(report, {
+    fields: [reportEdit.reportId],
+    references: [report.id],
+  }),
+  responder: one(user, {
+    fields: [reportEdit.responderId],
+    references: [user.id],
   }),
 }));
