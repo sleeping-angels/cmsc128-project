@@ -49,7 +49,8 @@ export const reportFeedItemSchema = z.object({
   sourceChannel: sourceChannelSchema,
   parsedAutomatically: z.boolean(),
   parseConfidence: parseConfidenceSchema.nullable(),
-  resident: z.object({ id: z.uuid(), name: z.string().nullable() }),
+  /** Null when a responder logged the report for an unknown caller. */
+  resident: z.object({ id: z.uuid(), name: z.string().nullable() }).nullable(),
   victimCount: z.int().min(0),
   createdAt: stringToDate,
   updatedAt: stringToDate,
