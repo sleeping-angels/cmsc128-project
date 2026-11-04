@@ -36,6 +36,20 @@
       "when": 1793330373980,
       "tag": "0004_seed_barangays",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793772426269,
+      "tag": "0005_complete_schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793772427351,
+      "tag": "0006_seed_agencies",
+      "breakpoints": true
     }
   ]
 }
