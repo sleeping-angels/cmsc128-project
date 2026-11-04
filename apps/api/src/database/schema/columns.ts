@@ -9,6 +9,11 @@ export type { MultiPolygon };
 
 type Position = [number, number];
 
+export interface Polygon {
+  type: 'Polygon';
+  coordinates: Position[][];
+}
+
 const WKB_POINT = 1;
 const WKB_POLYGON = 3;
 const WKB_MULTI_POLYGON = 6;
@@ -51,6 +56,13 @@ export function parseEwkbPoint(hex: string): GeoPoint {
   return { lng, lat };
 }
 
+export function parseEwkbPolygon(hex: string): Polygon {
+  const r = readEwkb(hex);
+  const type = r.header();
+  if (type !== WKB_POLYGON) throw new Error(`Expected a polygon, got ${type}`);
+  return { type: 'Polygon', coordinates: r.polygon() };
+}
+
 export function parseEwkbMultiPolygon(hex: string): MultiPolygon {
   const r = readEwkb(hex);
   const type = r.header();
@@ -68,10 +80,15 @@ export function toEwktPoint({ lng, lat }: GeoPoint): string {
   return `SRID=${SRID};POINT(${lng} ${lat})`;
 }
 
+const ewktRing = (r: Position[]) => `(${r.map((p) => p.join(' ')).join(',')})`;
+const ewktPolygon = (p: Position[][]) => `(${p.map(ewktRing).join(',')})`;
+
+export function toEwktPolygon({ coordinates }: Polygon): string {
+  return `SRID=${SRID};POLYGON${ewktPolygon(coordinates)}`;
+}
+
 export function toEwktMultiPolygon({ coordinates }: MultiPolygon): string {
-  const ring = (r: Position[]) => `(${r.map((p) => p.join(' ')).join(',')})`;
-  const polygon = (p: Position[][]) => `(${p.map(ring).join(',')})`;
-  return `SRID=${SRID};MULTIPOLYGON(${coordinates.map(polygon).join(',')})`;
+  return `SRID=${SRID};MULTIPOLYGON(${coordinates.map(ewktPolygon).join(',')})`;
 }
 
 // Selects return hex EWKB; relational queries nest rows as JSON, where
@@ -90,6 +107,18 @@ export const geometryPoint = customType<{
     const [lng, lat] = value.coordinates;
     return { lng, lat };
   },
+});
+
+export const geometryPolygon = customType<{
+  data: Polygon;
+  driverData: DriverValue<Polygon>;
+}>({
+  dataType: () => `geometry(Polygon, ${SRID})`,
+  toDriver: toEwktPolygon,
+  fromDriver: (value) =>
+    typeof value === 'string'
+      ? parseEwkbPolygon(value)
+      : { type: 'Polygon', coordinates: value.coordinates },
 });
 
 export const geometryMultiPolygon = customType<{
