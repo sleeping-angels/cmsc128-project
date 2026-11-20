@@ -4,7 +4,13 @@ import {
   Outlet,
   useMatchRoute,
 } from '@tanstack/react-router';
-import { Activity, LayoutDashboard, TriangleAlert, Radio } from 'lucide-react';
+import {
+  Activity,
+  LayoutDashboard,
+  MapIcon,
+  TriangleAlert,
+  Radio,
+} from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -37,6 +43,8 @@ const navItems = [
     icon: TriangleAlert,
     fuzzy: true,
   },
+  /* After Incidents, per the Figma. MapIcon avoids shadowing JS's Map. */
+  { to: '/dashboard/map', label: 'Map', icon: MapIcon, fuzzy: false },
   {
     to: '/dashboard/emergency-broadcasts',
     label: 'Emergency Broadcasts',
