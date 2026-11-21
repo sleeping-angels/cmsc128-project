@@ -26,6 +26,23 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
+        /*
+         * The map page's ~1 MB bundle stays out of the install-time precache,
+         * so only people who open Map download it (NFR9). It's cached on first
+         * use instead; hashed file names make CacheFirst safe.
+         */
+        globIgnores: ['**/assets/map-*'],
+        runtimeCaching: [
+          {
+            urlPattern: /\/assets\/map-[^/]+\.(?:js|css)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'map-assets',
+              // Old builds' files drop out instead of piling up.
+              expiration: { maxEntries: 4 },
+            },
+          },
+        ],
       },
     }),
   ],
