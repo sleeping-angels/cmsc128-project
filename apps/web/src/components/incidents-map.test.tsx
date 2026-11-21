@@ -131,9 +131,11 @@ describe('IncidentsMap', () => {
     await pinsAfter(2);
     setLngLat.mockClear();
 
-    fireEvent.change(screen.getByLabelText('Severity'), {
-      target: { value: 'low' },
-    });
+    /* Base UI needs pointerdown before click to select an option. */
+    fireEvent.click(screen.getByRole('combobox', { name: 'Severity' }));
+    const low = await screen.findByRole('option', { name: 'Severity: Low' });
+    fireEvent.pointerDown(low);
+    fireEvent.click(low);
     expect(await pinsAfter(1)).toEqual([122.2]);
   });
 

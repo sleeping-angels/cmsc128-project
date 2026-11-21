@@ -14,9 +14,12 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import {
-  NativeSelect,
-  NativeSelectOption,
-} from '@/components/ui/native-select';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { reportFeedQuery } from '@/lib/reports';
 
 /*
@@ -115,9 +118,8 @@ export function IncidentsMap() {
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
 
   /* Updates one filter from its select. */
-  const setFilter =
-    (key: keyof Filters) => (event: { target: { value: string } }) =>
-      setFilters((current) => ({ ...current, [key]: event.target.value }));
+  const setFilter = (key: keyof Filters) => (value: string) =>
+    setFilters((current) => ({ ...current, [key]: value }));
 
   /* Create the map once in the container div; remove it on unmount to free WebGL. */
   useEffect(() => {
@@ -163,50 +165,48 @@ export function IncidentsMap() {
           label="Type"
           value={filters.type}
           onChange={setFilter('type')}
-        >
-          <NativeSelectOption value="all">Type: All</NativeSelectOption>
-          {typesIn(data ?? []).map(([id, name]) => (
-            <NativeSelectOption key={id} value={id}>
-              Type: {name}
-            </NativeSelectOption>
-          ))}
-        </FilterSelect>
+          options={[
+            { value: 'all', label: 'Type: All' },
+            ...typesIn(data ?? []).map(([id, name]) => ({
+              value: id,
+              label: `Type: ${name}`,
+            })),
+          ]}
+        />
         <FilterSelect
           label="Severity"
           value={filters.severity}
           onChange={setFilter('severity')}
-        >
-          <NativeSelectOption value="all">Severity: All</NativeSelectOption>
-          {SEVERITIES.map((s) => (
-            <NativeSelectOption key={s.value} value={s.value}>
-              Severity: {s.label}
-            </NativeSelectOption>
-          ))}
-        </FilterSelect>
+          options={[
+            { value: 'all', label: 'Severity: All' },
+            ...SEVERITIES.map((s) => ({
+              value: s.value,
+              label: `Severity: ${s.label}`,
+            })),
+          ]}
+        />
         <FilterSelect
           label="Status"
           value={filters.status}
           onChange={setFilter('status')}
-        >
-          <NativeSelectOption value="open">Status: Open</NativeSelectOption>
-          <NativeSelectOption value="all">Status: All</NativeSelectOption>
-          {reportStatusSchema.options.map((status) => (
-            <NativeSelectOption key={status} value={status}>
-              Status: {status.charAt(0).toUpperCase() + status.slice(1)}
-            </NativeSelectOption>
-          ))}
-        </FilterSelect>
+          options={[
+            { value: 'open', label: 'Status: Open' },
+            { value: 'all', label: 'Status: All' },
+            ...reportStatusSchema.options.map((status) => ({
+              value: status,
+              label: `Status: ${status.charAt(0).toUpperCase() + status.slice(1)}`,
+            })),
+          ]}
+        />
         <FilterSelect
           label="Date"
           value={filters.date}
           onChange={setFilter('date')}
-        >
-          {DATE_RANGES.map((range) => (
-            <NativeSelectOption key={range.value} value={range.value}>
-              Date: {range.label}
-            </NativeSelectOption>
-          ))}
-        </FilterSelect>
+          options={DATE_RANGES.map((range) => ({
+            value: range.value,
+            label: `Date: ${range.label}`,
+          }))}
+        />
         {/* TODO: barangay name labels (no issue yet); disabled until pins can be clicked (#66). */}
         <div className="flex w-42.5 items-center gap-2">
           <Checkbox id="barangay-names" disabled />
@@ -247,16 +247,37 @@ export function IncidentsMap() {
   );
 }
 
-/* One filter dropdown, styled like the Figma's NativeSelect (36px, white, shadow-xs). */
+/* One filter dropdown; `items` makes the trigger show the label. */
 function FilterSelect({
   label,
-  ...props
-}: { label: string } & React.ComponentProps<typeof NativeSelect>) {
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: { value: string; label: string }[];
+}) {
   return (
-    <NativeSelect
-      aria-label={label}
-      className="min-w-0 flex-1 [&>select]:h-9 [&>select]:bg-background [&>select]:shadow-xs"
-      {...props}
-    />
+    <Select
+      items={options}
+      value={value}
+      onValueChange={(next) => next !== null && onChange(next)}
+    >
+      <SelectTrigger
+        aria-label={label}
+        className="min-w-0 flex-1 bg-background shadow-xs data-[size=default]:h-9"
+      >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {options.map((option) => (
+          <SelectItem key={option.value} value={option.value}>
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
