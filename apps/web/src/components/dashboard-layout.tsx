@@ -43,7 +43,6 @@ const navItems = [
     icon: TriangleAlert,
     fuzzy: true,
   },
-  /* After Incidents, per the Figma. MapIcon avoids shadowing JS's Map. */
   { to: '/dashboard/map', label: 'Map', icon: MapIcon, fuzzy: false },
   {
     to: '/dashboard/emergency-broadcasts',

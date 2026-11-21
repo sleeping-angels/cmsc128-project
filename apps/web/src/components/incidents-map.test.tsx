@@ -9,7 +9,7 @@ import {
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { IncidentsMap } from './incidents-map';
 
-/* Fake MapLibre (jsdom has no WebGL); records the coordinates of each pin drawn. */
+/* Fake MapLibre that records each pin's coordinates. */
 const { setLngLat } = vi.hoisted(() => ({ setLngLat: vi.fn() }));
 vi.mock('maplibre-gl', () => {
   class Map {
@@ -31,7 +31,7 @@ vi.mock('maplibre-gl', () => {
 const DAY = 24 * 60 * 60 * 1000;
 let nextId = 0;
 
-/* One report as the API sends it; by default open, recent and located. */
+/* One API report; open, recent and located by default. */
 function item(overrides: {
   lng?: number;
   located?: boolean;
@@ -75,7 +75,7 @@ function respondWith(status: number, body?: unknown) {
   );
 }
 
-/* Renders the page; no retries, so errors show at once. */
+/* Renders the page without query retries. */
 function renderMap() {
   render(
     <QueryClientProvider
@@ -88,7 +88,7 @@ function renderMap() {
   );
 }
 
-/* Waits for the expected number of pins, then returns their longitudes. */
+/* Waits for the pins, then returns their longitudes. */
 async function pinsAfter(expected: number) {
   await waitFor(() => expect(setLngLat).toHaveBeenCalledTimes(expected));
   return setLngLat.mock.calls.map(([lngLat]) => lngLat[0]);
@@ -109,7 +109,7 @@ describe('IncidentsMap', () => {
     expect(await pinsAfter(1)).toEqual([122.1]);
   });
 
-  /* Defaults (Figma): open reports from the last 7 days. */
+  /* Defaults: open reports from the last 7 days. */
   it('starts with open reports from the last 7 days', async () => {
     respondWith(200, [
       item({ lng: 122.1, status: 'dispatched' }),
@@ -121,7 +121,7 @@ describe('IncidentsMap', () => {
     expect(await pinsAfter(1)).toEqual([122.1]);
   });
 
-  /* Picking a severity redraws only the reports with it. */
+  /* Picking a severity shows only its reports. */
   it('filters by severity', async () => {
     respondWith(200, [
       item({ lng: 122.1, severity: 'high' }),
@@ -139,7 +139,7 @@ describe('IncidentsMap', () => {
     expect(await pinsAfter(1)).toEqual([122.2]);
   });
 
-  /* Heatmap (#67) and barangay names aren't built yet. */
+  /* Unbuilt features are disabled. */
   it('disables the checkboxes that are not built yet', () => {
     respondWith(200, []);
     renderMap();

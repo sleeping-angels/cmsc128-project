@@ -22,34 +22,28 @@ import {
 } from '@/components/ui/select';
 import { reportFeedQuery } from '@/lib/reports';
 
-/*
- * MapLibre's tile-decoding worker. Vite doesn't ship it by default (404 =
- * blank map); `?url` ships it and gives us its address.
- */
+/* Ship MapLibre's worker with Vite; without it the map is blank. */
 maplibregl.setWorkerUrl(workerUrl);
 
-/* Base map from OpenFreeMap (free, no API key), opened over all of Miagao. */
+/* OpenFreeMap base map, centered on Miagao. */
 const STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
 const MIAGAO_CENTER: [number, number] = [122.24, 10.7]; // [lng, lat]
 const START_ZOOM = 11;
 
-/*
- * Pin color per severity, from the Figma legend. They are the brand's
- * semantic tokens: destructive, highlight, warning, info.
- */
+/* Pin color per severity. */
 const SEVERITIES: { value: SeverityLevel; label: string; color: string }[] = [
   { value: 'critical', label: 'Critical', color: 'bg-destructive' },
   { value: 'high', label: 'High', color: 'bg-highlight' },
   { value: 'moderate', label: 'Moderate', color: 'bg-warning' },
   { value: 'low', label: 'Low', color: 'bg-info' },
 ];
-/* Not yet classified (severity is null until then): grey, not in the legend. */
+/* Pin color for reports with no severity yet. */
 const UNCLASSIFIED_COLOR = 'bg-muted-foreground';
 
-/* "Open" = still in progress: pending through dispatched. */
+/* Statuses counted as open. */
 const OPEN_STATUSES: ReportStatus[] = ['pending', 'validated', 'dispatched'];
 
-/* Date filter choices, in days back from now (null = all time). */
+/* Date filter choices; null days means all time. */
 const DATE_RANGES = [
   { value: '1', label: 'Last 24 hours', days: 1 },
   { value: '7', label: 'Last 7 days', days: 7 },
@@ -58,7 +52,7 @@ const DATE_RANGES = [
 ];
 
 type Filters = { type: string; severity: string; status: string; date: string };
-/* Defaults match the Figma: all types and severities, open reports, last 7 days. */
+/* Default filters. */
 const DEFAULT_FILTERS: Filters = {
   type: 'all',
   severity: 'all',
@@ -66,7 +60,7 @@ const DEFAULT_FILTERS: Filters = {
   date: '7',
 };
 
-/* Keeps the reports that pass every filter; dates compare against created_at. */
+/* Keeps the reports that pass every filter. */
 function applyFilters(reports: ReportFeedItem[], filters: Filters) {
   const days = DATE_RANGES.find((range) => range.value === filters.date)?.days;
   const since = days ? Date.now() - days * 24 * 60 * 60 * 1000 : null;
@@ -82,7 +76,7 @@ function applyFilters(reports: ReportFeedItem[], filters: Filters) {
   );
 }
 
-/* Incident types that appear in the loaded reports, for the Type filter. */
+/* Incident types in the loaded reports. */
 function typesIn(reports: ReportFeedItem[]) {
   const types = new Map<string, string>();
   for (const report of reports) {
@@ -93,7 +87,7 @@ function typesIn(reports: ReportFeedItem[]) {
   return [...types].sort((a, b) => a[1].localeCompare(b[1]));
 }
 
-/* An 18px dot with a white ring (Figma "pin"), colored by severity. */
+/* Pin element colored by severity. */
 function pinElement(severity: SeverityLevel | null) {
   const pin = document.createElement('div');
   const color =
@@ -105,11 +99,7 @@ function pinElement(severity: SeverityLevel | null) {
   return pin;
 }
 
-/*
- * /dashboard/map (Figma "Map" frame): filters on top, then the map with one
- * pin per report that has a location. Only this page imports MapLibre, so it
- * downloads only when opened (NFR9).
- */
+/* /dashboard/map: filters and a pin per located report. */
 // TODO(#66): place reports without a point at their barangay's centroid.
 export function IncidentsMap() {
   const container = useRef<HTMLDivElement>(null);
@@ -121,7 +111,7 @@ export function IncidentsMap() {
   const setFilter = (key: keyof Filters) => (value: string) =>
     setFilters((current) => ({ ...current, [key]: value }));
 
-  /* Create the map once in the container div; remove it on unmount to free WebGL. */
+  /* Create the map on mount; remove it on unmount. */
   useEffect(() => {
     if (!container.current) return;
     map.current = new maplibregl.Map({
@@ -136,14 +126,14 @@ export function IncidentsMap() {
     };
   }, []);
 
-  /* Draw a pin per filtered report; on any change, remove the old ones first. */
+  /* Redraw pins when the reports or filters change. */
   // TODO(#38): pins follow live updates once the feed query refetches on report events.
   useEffect(() => {
     if (!map.current || !data) return;
     const markers = applyFilters(data, filters)
       .filter((report) => report.location)
       .map((report) =>
-        // TODO(#66): show the report's popup (type, barangay, severity, status, Open report) on click.
+        // TODO(#66): show the report's popup on click.
         new maplibregl.Marker({ element: pinElement(report.severity) })
           .setLngLat([report.location!.lng, report.location!.lat])
           .addTo(map.current!),
@@ -151,15 +141,12 @@ export function IncidentsMap() {
     return () => markers.forEach((marker) => marker.remove());
   }, [data, filters]);
 
-  /*
-   * Page body per the Figma: muted background with 24px padding. -m-4 cancels
-   * the layout's padding; the height fills the window below the header.
-   */
+  /* -m-4 cancels the layout's padding. */
   return (
     <div className="-m-4 flex h-[calc(100svh-4.5rem)] flex-col gap-4 bg-muted p-6">
       <h1 className="text-lg font-semibold">Map</h1>
 
-      {/* Filters: four selects sharing the row, then two fixed-width checkboxes. */}
+      {/* Filters */}
       <div className="flex items-center gap-2">
         <FilterSelect
           label="Type"
@@ -207,19 +194,19 @@ export function IncidentsMap() {
             label: `Date: ${range.label}`,
           }))}
         />
-        {/* TODO: barangay name labels (no issue yet); disabled until pins can be clicked (#66). */}
+        {/* TODO: barangay name labels. */}
         <div className="flex w-42.5 items-center gap-2">
           <Checkbox id="barangay-names" disabled />
           <Label htmlFor="barangay-names">Barangay names</Label>
         </div>
-        {/* TODO(#67): heatmap of incident density (Stretch). */}
+        {/* TODO(#67): heatmap. */}
         <div className="flex w-42.5 items-center gap-2">
           <Checkbox id="heatmap" disabled />
           <Label htmlFor="heatmap">Heatmap</Label>
         </div>
       </div>
 
-      {/* Map card; the legend and a load error float over the map. */}
+      {/* Map with legend and load error */}
       <div className="relative min-h-0 flex-1 overflow-hidden rounded-lg border bg-card">
         <div ref={container} className="size-full" />
         <div className="absolute top-4 left-4 flex flex-col gap-1.5 rounded-lg border bg-card px-3 py-2.5 text-xs">
