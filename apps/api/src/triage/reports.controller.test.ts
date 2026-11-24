@@ -14,6 +14,7 @@ import {
   vi,
 } from 'vitest';
 import { ReportsController } from './reports.controller.js';
+import { ReportInsightsService } from './report-insights.service.js';
 import { ReportsService } from './reports.service.js';
 
 vi.mock('../config/env.js', () => ({ env: {} }));
@@ -56,14 +57,15 @@ describe('/triage/reports', () => {
   const reports = {
     findDetail: vi.fn(),
     findFeed: vi.fn(),
-    summarize: vi.fn(),
   };
+  const insights = { summarize: vi.fn(), attention: vi.fn() };
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       controllers: [ReportsController],
       providers: [
         { provide: ReportsService, useValue: reports },
+        { provide: ReportInsightsService, useValue: insights },
         { provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor },
         // Same global pipe as AppModule, so the params DTO validates the ID.
         { provide: APP_PIPE, useClass: ZodValidationPipe },
@@ -76,7 +78,8 @@ describe('/triage/reports', () => {
   beforeEach(() => {
     reports.findDetail.mockReset();
     reports.findFeed.mockReset();
-    reports.summarize.mockReset();
+    insights.summarize.mockReset();
+    insights.attention.mockReset();
   });
 
   afterAll(async () => {
@@ -128,12 +131,35 @@ describe('/triage/reports', () => {
       openBySeverity: { low: 0, moderate: 1, high: 1, critical: 0, unrated: 1 },
       newToday: 3,
     };
-    reports.summarize.mockResolvedValue(summary);
+    insights.summarize.mockResolvedValue(summary);
     const res = await request(app.getHttpServer()).get(
       '/triage/reports/summary',
     );
     expect(res.status).toBe(200);
     expect(res.body).toEqual(summary);
     expect(reports.findDetail).not.toHaveBeenCalled();
+  });
+
+  it('returns the attention queue with reasons and ISO dates', async () => {
+    const { resident, victims, messages, ...rest } = detail;
+    insights.attention.mockResolvedValue({
+      total: 1,
+      reports: [
+        {
+          ...rest,
+          resident: { id: resident!.id, name: resident!.name },
+          victimCount: victims.length,
+          firstMessage: messages[0]!.body,
+          reasons: ['urgent'],
+        },
+      ],
+    });
+    const res = await request(app.getHttpServer()).get(
+      '/triage/reports/attention',
+    );
+    expect(res.status).toBe(200);
+    expect(res.body.total).toBe(1);
+    expect(res.body.reports[0].reasons).toEqual(['urgent']);
+    expect(res.body.reports[0].createdAt).toBe(at.toISOString());
   });
 });

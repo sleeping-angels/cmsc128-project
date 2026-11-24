@@ -1,5 +1,6 @@
 import { Controller, Get, NotFoundException, Param } from '@nestjs/common';
 import {
+  attentionQueueSchema,
   reportDetailSchema,
   reportFeedItemSchema,
   reportIdParamsSchema,
@@ -7,6 +8,7 @@ import {
 } from '@repo/shared';
 import { createZodDto, ZodResponse } from 'nestjs-zod';
 import { Roles } from '../auth/roles.decorator.js';
+import { ReportInsightsService } from './report-insights.service.js';
 import { ReportsService } from './reports.service.js';
 
 // codec: the methods return Dates; the serializer encodes them to ISO strings.
@@ -17,6 +19,9 @@ class ReportDetailDto extends createZodDto(reportDetailSchema, {
   codec: true,
 }) {}
 class ReportSummaryDto extends createZodDto(reportSummarySchema) {}
+class AttentionQueueDto extends createZodDto(attentionQueueSchema, {
+  codec: true,
+}) {}
 
 // The global ZodValidationPipe rejects a non-UUID id with a 400.
 class ReportIdParamsDto extends createZodDto(reportIdParamsSchema) {}
@@ -26,7 +31,10 @@ class ReportIdParamsDto extends createZodDto(reportIdParamsSchema) {}
 @Roles(['responder', 'admin'])
 @Controller('triage/reports')
 export class ReportsController {
-  constructor(private readonly reports: ReportsService) {}
+  constructor(
+    private readonly reports: ReportsService,
+    private readonly insights: ReportInsightsService,
+  ) {}
 
   /** The feed list for /dashboard/incidents. */
   @Get()
@@ -35,11 +43,20 @@ export class ReportsController {
     return this.reports.findFeed();
   }
 
-  /** Open report counts for the dashboard home. Declared before `:id` so it matches first. */
+  // The dashboard home's routes are declared before `:id` so they match first.
+
+  /** Open report counts. */
   @Get('summary')
   @ZodResponse({ type: ReportSummaryDto })
   summary() {
-    return this.reports.summarize();
+    return this.insights.summarize();
+  }
+
+  /** Open reports that need a responder, most urgent first. */
+  @Get('attention')
+  @ZodResponse({ type: AttentionQueueDto })
+  attention() {
+    return this.insights.attention();
   }
 
   @Get(':id')

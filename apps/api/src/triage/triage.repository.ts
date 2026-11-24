@@ -51,6 +51,11 @@ export class TriageRepository {
     return this.findFeedItems();
   }
 
+  /** Reports in the given statuses as the feed shows them, newest first. */
+  findFeedByStatus(statuses: ReportStatus[]): Promise<ReportFeedItem[]> {
+    return this.findFeedItems(inArray(report.status, statuses));
+  }
+
   /** One report as the feed shows it, or null. */
   async findFeedItem(id: string): Promise<ReportFeedItem | null> {
     const [item] = await this.findFeedItems(eq(report.id, id));
