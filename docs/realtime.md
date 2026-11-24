@@ -45,3 +45,5 @@ useRealtimeEvent<ReportFeedItem>('report:created', () => {
 ```
 
 Prefer invalidating or patching TanStack Query caches over keeping separate state.
+
+`useRealtimeConnected()` returns whether the socket is connected, e.g. to show a page is live.
