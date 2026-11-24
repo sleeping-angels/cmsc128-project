@@ -1,9 +1,5 @@
 import { RecentBroadcasts } from '@/features/broadcasts';
-import {
-  OpenReportCharts,
-  RecentReports,
-  ReportStats,
-} from '@/features/triage';
+import { OpenReportCharts, ReportQueue, ReportStats } from '@/features/triage';
 
 /** `/dashboard`: the current situation, from widgets the owning modules provide. */
 export function DashboardHome() {
@@ -13,7 +9,7 @@ export function DashboardHome() {
       <ReportStats />
       <OpenReportCharts />
       <div className="grid gap-4 lg:grid-cols-2">
-        <RecentReports />
+        <ReportQueue />
         <RecentBroadcasts />
       </div>
     </div>

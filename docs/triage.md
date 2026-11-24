@@ -25,11 +25,11 @@ Both need a signed-in responder or admin (`@Roles` on the controller, #41); any 
 
 ## Dashboard home widgets
 
-Triage exports three widgets for `/dashboard`:
+Triage exports these widgets for `/dashboard`:
 
 - `ReportStats`: open reports, new today, pending review, and critical and open, from `reportQueries.summary()`.
 - `OpenReportCharts`: open reports by status and by severity as shadcn bar charts, colored with the report state tokens.
-- `RecentReports`: the five newest reports from `reportQueries.feed()` (sharing the incidents page's cache); each opens its quick view at `/dashboard/incidents?report=<id>`.
+- `ReportQueue`: two tabs. Needs attention lists `reportQueries.attention()` with each report's reasons in plain words; Latest lists the eight newest from `reportQueries.feed()` (sharing the incidents page's cache). Rows open the quick view at `/dashboard/incidents?report=<id>`, and a report under five minutes old reads New.
 
 Each has its own loading, empty and error state.
 

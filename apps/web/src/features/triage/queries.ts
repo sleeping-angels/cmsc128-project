@@ -1,7 +1,11 @@
 import {
+  attentionQueueSchema,
   reportDetailSchema,
   reportFeedItemSchema,
   reportSummarySchema,
+  reportTrendsSchema,
+  responseTimesSchema,
+  type TrendRange,
 } from '@repo/shared';
 import { queryOptions } from '@tanstack/react-query';
 import { api } from '@/lib/api';
@@ -25,6 +29,34 @@ export const reportQueries = {
       queryKey: [...reportQueries.all(), 'summary'],
       queryFn: ({ signal }) =>
         api.get('/triage/reports/summary', reportSummarySchema, { signal }),
+    }),
+
+  /** Open reports that need a responder, most urgent first. */
+  attention: () =>
+    queryOptions({
+      queryKey: [...reportQueries.all(), 'attention'],
+      queryFn: ({ signal }) =>
+        api.get('/triage/reports/attention', attentionQueueSchema, { signal }),
+    }),
+
+  /** Median response times this week and last. */
+  responseTimes: () =>
+    queryOptions({
+      queryKey: [...reportQueries.all(), 'response-times'],
+      queryFn: ({ signal }) =>
+        api.get('/triage/reports/response-times', responseTimesSchema, {
+          signal,
+        }),
+    }),
+
+  /** Report counts over a range for the trend charts. */
+  trends: (range: TrendRange) =>
+    queryOptions({
+      queryKey: [...reportQueries.all(), 'trends', range],
+      queryFn: ({ signal }) =>
+        api.get(`/triage/reports/trends?range=${range}`, reportTrendsSchema, {
+          signal,
+        }),
     }),
 
   /** One report for responders, or null when no report has that ID. */
