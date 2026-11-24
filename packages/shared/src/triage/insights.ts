@@ -51,3 +51,21 @@ export const attentionQueueSchema = z.object({
   reports: z.array(attentionReportSchema),
 });
 export type AttentionQueue = z.output<typeof attentionQueueSchema>;
+
+/** The median of one step, now and in the period before, in minutes; null without data. */
+const responseTimeSchema = z.object({
+  minutes: z.number().min(0).nullable(),
+  previousMinutes: z.number().min(0).nullable(),
+});
+
+/** How long reports took to move along, over the last `days` days. */
+export const responseTimesSchema = z.object({
+  days: z.int().positive(),
+  /** From the report coming in to a responder confirming it. */
+  toValidate: responseTimeSchema,
+  /** From confirming it to sending help. */
+  toDispatch: responseTimeSchema,
+  /** From the report coming in to sending help. */
+  toHelp: responseTimeSchema,
+});
+export type ResponseTimes = z.output<typeof responseTimesSchema>;

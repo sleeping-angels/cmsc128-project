@@ -5,6 +5,7 @@ import {
   reportFeedItemSchema,
   reportIdParamsSchema,
   reportSummarySchema,
+  responseTimesSchema,
 } from '@repo/shared';
 import { createZodDto, ZodResponse } from 'nestjs-zod';
 import { Roles } from '../auth/roles.decorator.js';
@@ -19,6 +20,7 @@ class ReportDetailDto extends createZodDto(reportDetailSchema, {
   codec: true,
 }) {}
 class ReportSummaryDto extends createZodDto(reportSummarySchema) {}
+class ResponseTimesDto extends createZodDto(responseTimesSchema) {}
 class AttentionQueueDto extends createZodDto(attentionQueueSchema, {
   codec: true,
 }) {}
@@ -57,6 +59,13 @@ export class ReportsController {
   @ZodResponse({ type: AttentionQueueDto })
   attention() {
     return this.insights.attention();
+  }
+
+  /** Median times from report to help, this week and last. */
+  @Get('response-times')
+  @ZodResponse({ type: ResponseTimesDto })
+  responseTimes() {
+    return this.insights.responseTimes();
   }
 
   @Get(':id')

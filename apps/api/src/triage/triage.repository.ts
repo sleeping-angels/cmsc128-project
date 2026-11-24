@@ -7,10 +7,10 @@ import {
   type ReportStatus,
   type SeverityLevel,
 } from '@repo/shared';
-import { count, eq, gte, inArray, type SQL } from 'drizzle-orm';
+import { and, count, eq, gte, inArray, sql, type SQL } from 'drizzle-orm';
 import type { Database } from '../database/client.js';
 import { DB } from '../database/database.module.js';
-import { report } from '../database/schema/index.js';
+import { report, reportEdit } from '../database/schema/index.js';
 
 /**
  * Report columns the feed and the detail both hide: internal links and the
@@ -134,6 +134,43 @@ export class TriageRepository {
       .from(report)
       .where(gte(report.createdAt, since));
     return row?.count ?? 0;
+  }
+
+  /**
+   * Every status change of the reports with one at or after `since`, oldest
+   * first, with when each report came in.
+   */
+  findStatusChanges(since: Date): Promise<
+    {
+      reportId: string;
+      reportCreatedAt: Date;
+      status: string;
+      changedAt: Date;
+    }[]
+  > {
+    const changed = this.db
+      .select({ id: reportEdit.reportId })
+      .from(reportEdit)
+      .where(
+        and(eq(reportEdit.field, 'status'), gte(reportEdit.editedAt, since)),
+      );
+    return this.db
+      .select({
+        reportId: reportEdit.reportId,
+        reportCreatedAt: report.createdAt,
+        // new_value is jsonb; #>> '{}' unwraps the JSON string.
+        status: sql<string>`${reportEdit.newValue} #>> '{}'`,
+        changedAt: reportEdit.editedAt,
+      })
+      .from(reportEdit)
+      .innerJoin(report, eq(report.id, reportEdit.reportId))
+      .where(
+        and(
+          eq(reportEdit.field, 'status'),
+          inArray(reportEdit.reportId, changed),
+        ),
+      )
+      .orderBy(reportEdit.editedAt);
   }
 
   private async findFeedItems(where?: SQL): Promise<ReportFeedItem[]> {

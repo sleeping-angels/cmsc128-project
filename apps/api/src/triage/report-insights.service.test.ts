@@ -2,6 +2,7 @@ import type { ReportFeedItem } from '@repo/shared';
 import { describe, expect, it, vi } from 'vitest';
 import {
   attentionReasons,
+  median,
   ReportInsightsService,
   startOfPhilippineDay,
 } from './report-insights.service.js';
@@ -170,5 +171,66 @@ describe('ReportInsightsService.attention', () => {
 
     expect(queue.total).toBe(10);
     expect(queue.reports).toHaveLength(3);
+  });
+});
+
+describe('median', () => {
+  it.each([
+    [[], null],
+    [[5], 5],
+    [[9, 1, 5], 5],
+    [[4, 1, 3, 2], 2.5],
+  ])('of %j is %s', (values, expected) => {
+    expect(median(values)).toBe(expected);
+  });
+});
+
+describe('ReportInsightsService.responseTimes', () => {
+  const daysAgo = (n: number) => minutesAgo(n * 24 * 60);
+  const change = (
+    reportId: string,
+    reportCreatedAt: Date,
+    status: string,
+    changedAt: Date,
+  ) => ({ reportId, reportCreatedAt, status, changedAt });
+
+  it('takes medians per step, split by the week each step finished in', async () => {
+    const thisWeek = daysAgo(1);
+    const lastWeek = daysAgo(10);
+    const plus = (at: Date, minutes: number) =>
+      new Date(at.getTime() + minutes * 60 * 1000);
+    const repository = {
+      findStatusChanges: vi.fn().mockResolvedValue([
+        // Validated in 10 min, dispatched 20 min later, both this week.
+        change('a', thisWeek, 'validated', plus(thisWeek, 10)),
+        change('a', thisWeek, 'dispatched', plus(thisWeek, 30)),
+        // Validated in 30 min this week, not dispatched yet.
+        change('b', thisWeek, 'validated', plus(thisWeek, 30)),
+        // Validated in 60 min last week.
+        change('c', lastWeek, 'validated', plus(lastWeek, 60)),
+      ]),
+    };
+
+    const times = await service(repository).responseTimes(now);
+
+    expect(repository.findStatusChanges).toHaveBeenCalledWith(daysAgo(14));
+    expect(times).toEqual({
+      days: 7,
+      toValidate: { minutes: 20, previousMinutes: 60 },
+      toDispatch: { minutes: 20, previousMinutes: null },
+      toHelp: { minutes: 30, previousMinutes: null },
+    });
+  });
+
+  it('skips a dispatch with no validation before it', async () => {
+    const at = daysAgo(1);
+    const times = await service({
+      findStatusChanges: vi
+        .fn()
+        .mockResolvedValue([change('a', at, 'dispatched', minutesAgo(60))]),
+    }).responseTimes(now);
+
+    expect(times.toDispatch.minutes).toBeNull();
+    expect(times.toHelp.minutes).not.toBeNull();
   });
 });

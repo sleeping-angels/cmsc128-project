@@ -6,6 +6,7 @@ import {
   openReportStatusSchema,
   type ReportFeedItem,
   type ReportSummary,
+  type ResponseTimes,
   type SeverityLevel,
 } from '@repo/shared';
 import { TriageRepository } from './triage.repository.js';
@@ -23,6 +24,9 @@ export const UNSURE_CONFIDENCE = 0.5;
 
 /** How many reports the attention queue returns. */
 export const ATTENTION_LIMIT = 3;
+
+/** The period response times cover, in days. */
+export const RESPONSE_TIME_DAYS = 7;
 
 /** Most urgent first; a report without a severity sits with moderate. */
 const SEVERITY_RANK: Record<SeverityLevel | 'unrated', number> = {
@@ -70,6 +74,16 @@ export function attentionReasons(
   return reasons;
 }
 
+/** The middle value, or the mean of the middle two; null when empty. */
+export function median(values: number[]): number | null {
+  if (!values.length) return null;
+  const sorted = values.toSorted((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2
+    ? sorted[mid]!
+    : (sorted[mid - 1]! + sorted[mid]!) / 2;
+}
+
 /** Report counts and queues for the dashboard home. */
 @Injectable()
 export class ReportInsightsService {
@@ -114,6 +128,63 @@ export class ReportInsightsService {
     return {
       total: flagged.length,
       reports: flagged.slice(0, ATTENTION_LIMIT),
+    };
+  }
+
+  /**
+   * Median minutes from report to validated, validated to dispatched, and
+   * report to dispatched, for steps finished in the last week and the week
+   * before. A step counts in the period it finished in.
+   */
+  async responseTimes(now = new Date()): Promise<ResponseTimes> {
+    const period = RESPONSE_TIME_DAYS * 24 * 60 * MINUTE_MS;
+    const changes = await this.repository.findStatusChanges(
+      new Date(now.getTime() - 2 * period),
+    );
+
+    // When each report came in and first reached each status.
+    const reports = new Map<
+      string,
+      { createdAt: Date; validated?: Date; dispatched?: Date }
+    >();
+    for (const change of changes) {
+      const entry = reports.get(change.reportId) ?? {
+        createdAt: change.reportCreatedAt,
+      };
+      if (change.status === 'validated') entry.validated ??= change.changedAt;
+      if (change.status === 'dispatched') entry.dispatched ??= change.changedAt;
+      reports.set(change.reportId, entry);
+    }
+
+    const steps = {
+      toValidate: { current: [] as number[], previous: [] as number[] },
+      toDispatch: { current: [] as number[], previous: [] as number[] },
+      toHelp: { current: [] as number[], previous: [] as number[] },
+    };
+    const add = (step: keyof typeof steps, from?: Date, to?: Date) => {
+      if (!from || !to) return;
+      const age = now.getTime() - to.getTime();
+      if (age < 0 || age >= 2 * period) return;
+      const minutes = (to.getTime() - from.getTime()) / MINUTE_MS;
+      steps[step][age < period ? 'current' : 'previous'].push(
+        Math.max(0, minutes),
+      );
+    };
+    for (const r of reports.values()) {
+      add('toValidate', r.createdAt, r.validated);
+      add('toDispatch', r.validated, r.dispatched);
+      add('toHelp', r.createdAt, r.dispatched);
+    }
+
+    const summarize = (step: keyof typeof steps) => ({
+      minutes: median(steps[step].current),
+      previousMinutes: median(steps[step].previous),
+    });
+    return {
+      days: RESPONSE_TIME_DAYS,
+      toValidate: summarize('toValidate'),
+      toDispatch: summarize('toDispatch'),
+      toHelp: summarize('toHelp'),
     };
   }
 }

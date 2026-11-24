@@ -58,7 +58,11 @@ describe('/triage/reports', () => {
     findDetail: vi.fn(),
     findFeed: vi.fn(),
   };
-  const insights = { summarize: vi.fn(), attention: vi.fn() };
+  const insights = {
+    summarize: vi.fn(),
+    attention: vi.fn(),
+    responseTimes: vi.fn(),
+  };
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -80,6 +84,7 @@ describe('/triage/reports', () => {
     reports.findFeed.mockReset();
     insights.summarize.mockReset();
     insights.attention.mockReset();
+    insights.responseTimes.mockReset();
   });
 
   afterAll(async () => {
@@ -161,5 +166,20 @@ describe('/triage/reports', () => {
     expect(res.body.total).toBe(1);
     expect(res.body.reports[0].reasons).toEqual(['urgent']);
     expect(res.body.reports[0].createdAt).toBe(at.toISOString());
+  });
+
+  it('returns response times, null where there is no data', async () => {
+    const times = {
+      days: 7,
+      toValidate: { minutes: 12.5, previousMinutes: null },
+      toDispatch: { minutes: null, previousMinutes: null },
+      toHelp: { minutes: 40, previousMinutes: 55 },
+    };
+    insights.responseTimes.mockResolvedValue(times);
+    const res = await request(app.getHttpServer()).get(
+      '/triage/reports/response-times',
+    );
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(times);
   });
 });
