@@ -1,4 +1,8 @@
-import { reportDetailSchema, reportFeedItemSchema } from '@repo/shared';
+import {
+  reportDetailSchema,
+  reportFeedItemSchema,
+  reportSummarySchema,
+} from '@repo/shared';
 import { queryOptions } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 
@@ -13,6 +17,14 @@ export const reportQueries = {
       queryKey: [...reportQueries.all(), 'feed'],
       queryFn: ({ signal }) =>
         api.get('/triage/reports', reportFeedItemSchema.array(), { signal }),
+    }),
+
+  /** Open report counts by status and severity, and how many came in today. */
+  summary: () =>
+    queryOptions({
+      queryKey: [...reportQueries.all(), 'summary'],
+      queryFn: ({ signal }) =>
+        api.get('/triage/reports/summary', reportSummarySchema, { signal }),
     }),
 
   /** One report for responders, or null when no report has that ID. */
