@@ -14,3 +14,4 @@ Lets responders send advisories to residents and track delivery (EP5).
 
 - `/dashboard/broadcasts`: compose an advisory and list recent ones.
 - `/dashboard/broadcasts/:broadcastId`: delivery counts (stub).
+- `/dashboard` (home): `RecentBroadcasts` lists the recent advisories with their nonzero delivery counts; each opens its page.
