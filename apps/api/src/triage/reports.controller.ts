@@ -3,6 +3,7 @@ import {
   reportDetailSchema,
   reportFeedItemSchema,
   reportIdParamsSchema,
+  reportSummarySchema,
 } from '@repo/shared';
 import { createZodDto, ZodResponse } from 'nestjs-zod';
 import { Roles } from '../auth/roles.decorator.js';
@@ -15,6 +16,7 @@ class ReportFeedItemDto extends createZodDto(reportFeedItemSchema, {
 class ReportDetailDto extends createZodDto(reportDetailSchema, {
   codec: true,
 }) {}
+class ReportSummaryDto extends createZodDto(reportSummarySchema) {}
 
 // The global ZodValidationPipe rejects a non-UUID id with a 400.
 class ReportIdParamsDto extends createZodDto(reportIdParamsSchema) {}
@@ -31,6 +33,13 @@ export class ReportsController {
   @ZodResponse({ type: [ReportFeedItemDto] })
   findAll() {
     return this.reports.findFeed();
+  }
+
+  /** Open report counts for the dashboard home. Declared before `:id` so it matches first. */
+  @Get('summary')
+  @ZodResponse({ type: ReportSummaryDto })
+  summary() {
+    return this.reports.summarize();
   }
 
   @Get(':id')

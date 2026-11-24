@@ -11,6 +11,7 @@ Lets responders review reports. Read-only for now; editing arrives with #39.
 Both need a signed-in responder or admin (`@Roles` on the controller, #41); any other role gets 403.
 
 - `GET /triage/reports`: every report as a `reportFeedItemSchema`, newest first. Each item carries `firstMessage`, the text of the message the report came from, for the feed card, and `creator`, the responder who logged it from the dashboard (null for resident reports).
+- `GET /triage/reports/summary`: counts for the dashboard home as `reportSummarySchema`. A report is open while `pending`, `validated` or `dispatched` (`openReportStatusSchema`); `openByStatus` and `openBySeverity` count open reports (severity `unrated` when none is set), and `newToday` counts reports of any status created since midnight Philippine time (UTC+8). Declared before `:id`.
 - `GET /triage/reports/:id`: one report as `reportDetailSchema`; 400 for a malformed ID, 404 when no report has it. Unlike a feed item, it carries the resident's contact number, the victims and the conversation, oldest first. Keep it off public pages.
 
 ## Feed queries
@@ -36,4 +37,6 @@ The web app reads the list with `reportQueries.feed()` and each report with `rep
 | `reportFeedItemSchema`     | A report as the feed lists it (defined with intake's)    |
 | `reportDetailSchema`       | One report as a responder reviews it                     |
 | `reportIdParamsSchema`     | `{ id }` route params for one report                     |
+| `reportSummarySchema`      | Open report counts and new reports today                 |
+| `openReportStatusSchema`   | The statuses that count as open                          |
 | `messageAttachmentsSchema` | `message.attachments`, reduced to each attachment's type |

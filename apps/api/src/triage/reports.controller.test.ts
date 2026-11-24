@@ -53,7 +53,11 @@ const detail: ReportDetail = {
 
 describe('/triage/reports', () => {
   let app: INestApplication;
-  const reports = { findDetail: vi.fn(), findFeed: vi.fn() };
+  const reports = {
+    findDetail: vi.fn(),
+    findFeed: vi.fn(),
+    summarize: vi.fn(),
+  };
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -72,6 +76,7 @@ describe('/triage/reports', () => {
   beforeEach(() => {
     reports.findDetail.mockReset();
     reports.findFeed.mockReset();
+    reports.summarize.mockReset();
   });
 
   afterAll(async () => {
@@ -115,5 +120,20 @@ describe('/triage/reports', () => {
     expect(res.status).toBe(200);
     expect(res.body[0].firstMessage).toBe('tulong');
     expect(res.body[0].createdAt).toBe(at.toISOString());
+  });
+
+  it('returns the summary instead of treating "summary" as an ID', async () => {
+    const summary = {
+      openByStatus: { pending: 2, validated: 1, dispatched: 0 },
+      openBySeverity: { low: 0, moderate: 1, high: 1, critical: 0, unrated: 1 },
+      newToday: 3,
+    };
+    reports.summarize.mockResolvedValue(summary);
+    const res = await request(app.getHttpServer()).get(
+      '/triage/reports/summary',
+    );
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(summary);
+    expect(reports.findDetail).not.toHaveBeenCalled();
   });
 });

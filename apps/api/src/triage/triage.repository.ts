@@ -4,8 +4,10 @@ import {
   parseConfidenceSchema,
   type ReportDetail,
   type ReportFeedItem,
+  type ReportStatus,
+  type SeverityLevel,
 } from '@repo/shared';
-import { eq, type SQL } from 'drizzle-orm';
+import { count, eq, gte, inArray, type SQL } from 'drizzle-orm';
 import type { Database } from '../database/client.js';
 import { DB } from '../database/database.module.js';
 import { report } from '../database/schema/index.js';
@@ -99,6 +101,34 @@ export class TriageRepository {
         attachments: checkAttachments(m.attachments),
       })),
     };
+  }
+
+  /** Report counts per status and severity, for reports in the given statuses. */
+  countByStatusAndSeverity(statuses: ReportStatus[]): Promise<
+    {
+      status: ReportStatus;
+      severity: SeverityLevel | null;
+      count: number;
+    }[]
+  > {
+    return this.db
+      .select({
+        status: report.status,
+        severity: report.severity,
+        count: count(),
+      })
+      .from(report)
+      .where(inArray(report.status, statuses))
+      .groupBy(report.status, report.severity);
+  }
+
+  /** How many reports were created at or after `since`. */
+  async countCreatedSince(since: Date): Promise<number> {
+    const [row] = await this.db
+      .select({ count: count() })
+      .from(report)
+      .where(gte(report.createdAt, since));
+    return row?.count ?? 0;
   }
 
   private async findFeedItems(where?: SQL): Promise<ReportFeedItem[]> {
