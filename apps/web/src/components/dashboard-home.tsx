@@ -1,8 +1,14 @@
 import { RecentBroadcasts } from '@/features/broadcasts';
-import { OpenReportCharts, ReportQueue, ReportStats } from '@/features/triage';
+import {
+  OpenReportCharts,
+  ReportQueue,
+  ReportStats,
+  useReportLiveUpdates,
+} from '@/features/triage';
 
 /** `/dashboard`: the current situation, from widgets the owning modules provide. */
 export function DashboardHome() {
+  useReportLiveUpdates();
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-2xl font-semibold">Dashboard</h1>

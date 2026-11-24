@@ -31,7 +31,7 @@ Triage exports these widgets for `/dashboard`:
 - `OpenReportCharts`: open reports by status and by severity as shadcn bar charts, colored with the report state tokens.
 - `ReportQueue`: two tabs. Needs attention lists `reportQueries.attention()` with each report's reasons in plain words; Latest lists the eight newest from `reportQueries.feed()` (sharing the incidents page's cache). Rows open the quick view at `/dashboard/incidents?report=<id>`, and a report under five minutes old reads New.
 
-Each has its own loading, empty and error state.
+Each has its own loading, empty and error state. `useReportLiveUpdates()` refetches every report query on `report:created` and `report:updated`, so a page that calls it stays current.
 
 ## Incidents workspace
 
