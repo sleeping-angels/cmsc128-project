@@ -44,4 +44,15 @@ describe('RecentBroadcasts', () => {
     renderWithProviders(<RecentBroadcasts />);
     expect(await screen.findByText('No broadcasts yet')).toBeDefined();
   });
+
+  it('lists no more advisories than the limit', async () => {
+    respondWith(200, [
+      advisory,
+      { ...advisory, id: '1b9a3f4e-8c1d-4e2a-9f6b-1c2d3e4f5a6b' },
+    ]);
+    renderWithProviders(<RecentBroadcasts limit={1} />);
+    expect(
+      await screen.findAllByRole('link', { name: /Prepare/ }),
+    ).toHaveLength(1);
+  });
 });

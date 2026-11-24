@@ -46,8 +46,8 @@ function deliverySummary(deliveries: BroadcastSummary['deliveries']) {
   return parts.length ? parts.join(' · ') : 'No recipients';
 }
 
-/** The latest advisories with their delivery counts; each opens its page. */
-export function RecentBroadcasts() {
+/** The latest advisories (up to `limit`) with their delivery counts; each opens its page. */
+export function RecentBroadcasts({ limit = 5 }: { limit?: number }) {
   const { data, isPending, isError, refetch } = useQuery(
     broadcastQueries.recentAdvisories(),
   );
@@ -92,7 +92,7 @@ export function RecentBroadcasts() {
           </Empty>
         ) : (
           <ItemGroup className="gap-1">
-            {data.map((advisory) => (
+            {data.slice(0, limit).map((advisory) => (
               <Item
                 key={advisory.id}
                 size="sm"
