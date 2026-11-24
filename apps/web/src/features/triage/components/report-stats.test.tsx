@@ -22,6 +22,14 @@ describe('ReportStats', () => {
     ).toBeDefined();
   });
 
+  it('opens the incidents page from each card', async () => {
+    respondWith(200, summary);
+    renderWithProviders(<ReportStats />);
+    const link = await screen.findByRole('link', { name: /Critical/ });
+    expect(link.getAttribute('href')).toBe('/dashboard/incidents');
+    expect(screen.getAllByRole('link')).toHaveLength(4);
+  });
+
   it('offers a retry when the counts fail', async () => {
     respondWith(500, {});
     renderWithProviders(<ReportStats />);

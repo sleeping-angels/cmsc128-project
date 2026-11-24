@@ -1,5 +1,6 @@
 import { openReportStatusSchema, type ReportSummary } from '@repo/shared';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from '@tanstack/react-router';
 import { cn } from 'cn';
 import { CircleDashed, Inbox, type LucideIcon, Siren, Sun } from 'lucide-react';
 import { LoadError } from '@/components/load-error';
@@ -57,7 +58,7 @@ const STATS: Stat[] = [
   },
 ];
 
-/** Headline report counts for the dashboard home. */
+/** Headline report counts for the dashboard home; each card opens the incidents page. */
 export function ReportStats() {
   const { data, isPending, isError, refetch } = useQuery(
     reportQueries.summary(),
@@ -78,32 +79,39 @@ export function ReportStats() {
       {STATS.map((stat) => {
         const value = data && stat.value(data);
         return (
-          <Card key={stat.label} className="gap-2">
-            <CardHeader>
-              <CardDescription>{stat.label}</CardDescription>
-              <CardAction>
-                <stat.icon
-                  aria-hidden
-                  className="size-4 text-muted-foreground"
-                />
-              </CardAction>
-              {isPending ? (
-                <Skeleton className="h-8 w-12" />
-              ) : (
-                <CardTitle
-                  className={cn(
-                    'text-3xl font-semibold tabular-nums',
-                    stat.alarming && value ? 'text-destructive' : undefined,
-                  )}
-                >
-                  {value}
-                </CardTitle>
-              )}
-            </CardHeader>
-            <CardContent className="text-xs text-muted-foreground">
-              {data ? stat.hint(data) : <Skeleton className="h-4 w-24" />}
-            </CardContent>
-          </Card>
+          // TODO(#40): open the list filtered to what the card counts once the feed has filters.
+          <Link
+            key={stat.label}
+            to="/dashboard/incidents"
+            className="group rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+          >
+            <Card className="h-full gap-2 transition-colors group-hover:bg-muted/60 group-hover:ring-foreground/25">
+              <CardHeader>
+                <CardDescription>{stat.label}</CardDescription>
+                <CardAction>
+                  <stat.icon
+                    aria-hidden
+                    className="size-4 text-muted-foreground"
+                  />
+                </CardAction>
+                {isPending ? (
+                  <Skeleton className="h-8 w-12" />
+                ) : (
+                  <CardTitle
+                    className={cn(
+                      'text-3xl font-semibold tabular-nums',
+                      stat.alarming && value ? 'text-destructive' : undefined,
+                    )}
+                  >
+                    {value}
+                  </CardTitle>
+                )}
+              </CardHeader>
+              <CardContent className="text-xs text-muted-foreground">
+                {data ? stat.hint(data) : <Skeleton className="h-4 w-24" />}
+              </CardContent>
+            </Card>
+          </Link>
         );
       })}
     </div>
