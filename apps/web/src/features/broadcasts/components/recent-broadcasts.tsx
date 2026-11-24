@@ -23,7 +23,6 @@ import {
   Item,
   ItemContent,
   ItemDescription,
-  ItemFooter,
   ItemGroup,
   ItemTitle,
 } from '@/components/ui/item';
@@ -47,13 +46,19 @@ function deliverySummary(deliveries: BroadcastSummary['deliveries']) {
 }
 
 /** The latest advisories (up to `limit`) with their delivery counts; each opens its page. */
-export function RecentBroadcasts({ limit = 5 }: { limit?: number }) {
+export function RecentBroadcasts({
+  limit = 5,
+  className,
+}: {
+  limit?: number;
+  className?: string;
+}) {
   const { data, isPending, isError, refetch } = useQuery(
     broadcastQueries.recentAdvisories(),
   );
 
   return (
-    <Card>
+    <Card className={className}>
       <CardHeader>
         <CardTitle>Recent broadcasts</CardTitle>
         <CardDescription>Advisories sent to residents</CardDescription>
@@ -107,13 +112,17 @@ export function RecentBroadcasts({ limit = 5 }: { limit?: number }) {
                   <ItemTitle className="line-clamp-2 font-normal">
                     {advisory.messageBody}
                   </ItemTitle>
-                  <ItemDescription className="truncate">
-                    {advisory.createdBy.name} · {formatTimeAgo(advisory.sentAt)}
+                  {/* Who and when on the left, reach on the right; stacked on phones. */}
+                  <ItemDescription className="flex flex-col gap-x-3 sm:flex-row sm:justify-between">
+                    <span className="truncate">
+                      {advisory.createdBy.name} ·{' '}
+                      {formatTimeAgo(advisory.sentAt)}
+                    </span>
+                    <span className="shrink-0 text-xs tabular-nums">
+                      {deliverySummary(advisory.deliveries)}
+                    </span>
                   </ItemDescription>
                 </ItemContent>
-                <ItemFooter className="text-xs text-muted-foreground tabular-nums">
-                  {deliverySummary(advisory.deliveries)}
-                </ItemFooter>
               </Item>
             ))}
           </ItemGroup>

@@ -1,13 +1,25 @@
 import type { TrendRange } from '@repo/shared';
+import { useQuery } from '@tanstack/react-query';
+import { cn } from 'cn';
+import { greeting } from '@/lib/format';
+import { authQueries } from '@/features/auth';
 import { RecentBroadcasts } from '@/features/broadcasts';
+import { OpenReportsMinimap } from '@/features/map';
+import { useRealtimeConnected } from '@/features/realtime';
 import {
   ReportQueue,
   ReportStats,
   ReportTrends,
+  ResponseTimes,
   useReportLiveUpdates,
 } from '@/features/triage';
 
-/** `/dashboard`: the current situation, from widgets the owning modules provide. */
+const TIME_ZONE = 'Asia/Manila';
+
+/**
+ * `/dashboard`: what needs a responder now, where, and how things are going.
+ * Each widget comes from the module that owns its data.
+ */
 export function DashboardHome({
   range,
   onRangeChange,
@@ -16,15 +28,79 @@ export function DashboardHome({
   onRangeChange: (range: TrendRange) => void;
 }) {
   useReportLiveUpdates();
+  const { data: session } = useQuery(authQueries.session());
+  const firstName = session?.user.name.split(' ')[0];
+  const now = new Date();
+
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold">Dashboard</h1>
+      <header className="flex flex-wrap items-start justify-between gap-2">
+        <div className="flex flex-col gap-0.5">
+          <h1 className="text-2xl font-semibold">
+            {greeting(now)}
+            {firstName && `, ${firstName}`}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {now.toLocaleDateString('en-PH', {
+              timeZone: TIME_ZONE,
+              weekday: 'long',
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric',
+            })}
+          </p>
+        </div>
+        <LiveStatus />
+      </header>
+
       <ReportStats />
-      <div className="grid gap-4 lg:grid-cols-2">
-        <ReportQueue />
-        <RecentBroadcasts />
+
+      {/*
+        Each row's cards share a height: the map stretches to the queue, and
+        response times sit beside broadcasts. Narrower screens stack them, queue first.
+      */}
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+        <ReportQueue className="min-w-0 xl:col-span-2" />
+        <OpenReportsMinimap className="min-w-0" />
       </div>
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+        <ResponseTimes className="min-w-0" />
+        <RecentBroadcasts limit={2} className="min-w-0 xl:col-span-2" />
+      </div>
+
       <ReportTrends range={range} onRangeChange={onRangeChange} />
     </div>
+  );
+}
+
+/** Whether the page updates by itself; offline means numbers may be out of date. */
+function LiveStatus() {
+  const connected = useRealtimeConnected();
+  return (
+    <span
+      role="status"
+      className={cn(
+        'flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium',
+        connected ? 'text-success' : 'text-warning',
+      )}
+      title={
+        connected
+          ? 'New reports appear here automatically.'
+          : 'Reconnecting. Numbers may be out of date until then.'
+      }
+    >
+      <span className="relative flex size-2">
+        {connected && (
+          <span className="absolute inline-flex size-full animate-ping rounded-full bg-success opacity-60 motion-reduce:hidden" />
+        )}
+        <span
+          className={cn(
+            'relative inline-flex size-2 rounded-full',
+            connected ? 'bg-success' : 'bg-warning',
+          )}
+        />
+      </span>
+      {connected ? 'Live' : 'Offline, reconnecting…'}
+    </span>
   );
 }

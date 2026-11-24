@@ -46,7 +46,7 @@ import { useNow } from '../hooks/use-now';
 import { reportQueries } from '../queries';
 
 /** How many reports the Latest tab lists. */
-const LATEST_LIMIT = 8;
+const LATEST_LIMIT = 4;
 
 /** A report this young gets a "New" badge. */
 const NEW_FOR_MS = 5 * 60 * 1000;
@@ -66,18 +66,18 @@ const REASONS: Record<
  * The dashboard home's main list: open reports that need a responder, and
  * the latest reports. Each row opens its quick view on the incidents page.
  */
-export function ReportQueue() {
+export function ReportQueue({ className }: { className?: string }) {
   const [tab, setTab] = useState<'attention' | 'latest'>('attention');
   const attention = useQuery(reportQueries.attention());
   // Rerender every minute so "5 minutes ago" and "New" stay true.
   const now = useNow();
 
   return (
-    <Card>
+    <Card className={className}>
       <Tabs
         value={tab}
         onValueChange={(next) => setTab(next as typeof tab)}
-        className="gap-4"
+        className="flex-1 gap-4"
       >
         <CardHeader className="gap-3">
           <CardTitle className="sr-only">Reports</CardTitle>

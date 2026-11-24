@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { LngLatBounds } from 'maplibre-gl';
 import { ArrowRight } from 'lucide-react';
+import { cn } from 'cn';
 import { useEffect } from 'react';
 import { Map as AppMap } from '@/components/map';
 import { Button } from '@/components/ui/button';
@@ -22,13 +23,13 @@ import { SeverityLegend } from './severity-legend';
 const OPEN: readonly ReportStatus[] = openReportStatusSchema.options;
 
 /** A small map of open reports for the dashboard home, linking to the full map. */
-export function OpenReportsMinimap() {
+export function OpenReportsMinimap({ className }: { className?: string }) {
   const { data, isError, refetch } = useQuery(reportQueries.feed());
   const open = (data ?? []).filter((report) => OPEN.includes(report.status));
   const unplaced = open.filter((report) => !report.location).length;
 
   return (
-    <Card className="gap-3 pb-0">
+    <Card className={cn('gap-3 pb-0', className)}>
       <CardHeader>
         <CardTitle>Where reports are</CardTitle>
         <CardDescription>
@@ -49,7 +50,7 @@ export function OpenReportsMinimap() {
           </Button>
         </CardAction>
       </CardHeader>
-      <CardContent className="relative h-64 overflow-hidden px-0 lg:h-72">
+      <CardContent className="relative h-64 overflow-hidden px-0 xl:h-auto xl:min-h-64 xl:flex-1">
         {/* Scroll zoom stays off so scrolling the page never gets stuck on the map. */}
         <AppMap
           className="size-full"

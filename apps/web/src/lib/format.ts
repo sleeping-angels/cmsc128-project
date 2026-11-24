@@ -48,3 +48,17 @@ export function formatTime(date: Date) {
     timeStyle: 'short',
   });
 }
+
+/** "Good morning", "Good afternoon" or "Good evening" for the hour in the Philippines. */
+export function greeting(now: Date) {
+  const hour = Number(
+    now.toLocaleString('en-PH', {
+      timeZone: 'Asia/Manila',
+      hour: 'numeric',
+      hourCycle: 'h23',
+    }),
+  );
+  if (hour >= 5 && hour < 12) return 'Good morning';
+  if (hour >= 12 && hour < 18) return 'Good afternoon';
+  return 'Good evening';
+}

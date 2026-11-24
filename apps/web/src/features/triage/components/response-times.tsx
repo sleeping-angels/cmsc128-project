@@ -30,14 +30,14 @@ const STEPS: { key: Step; label: string; total?: boolean }[] = [
 ];
 
 /** Typical (median) time each step takes this week, against last week. */
-export function ResponseTimes() {
+export function ResponseTimes({ className }: { className?: string }) {
   const { data, isPending, isError, refetch } = useQuery(
     reportQueries.responseTimes(),
   );
   const empty = data && STEPS.every(({ key }) => data[key].minutes === null);
 
   return (
-    <Card>
+    <Card className={className}>
       <CardHeader>
         <CardTitle>How fast we respond</CardTitle>
         <CardDescription>
