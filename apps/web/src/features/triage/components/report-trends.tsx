@@ -56,13 +56,13 @@ const RANGES: Record<TrendRange, { short: string; long: string }> = {
   '90d': { short: '90 days', long: 'last 90 days' },
 };
 
-// Colors come from the report state tokens in index.css, so charts match the badges.
+// Colors come from lib/report-states, so charts match the badges and pins.
 // Most severe first; stacked bars draw the first key at the bottom.
 const severityConfig = {
-  critical: { label: 'Critical', color: 'var(--severity-critical)' },
-  high: { label: 'High', color: 'var(--severity-high)' },
-  moderate: { label: 'Moderate', color: 'var(--severity-moderate)' },
-  low: { label: 'Low', color: 'var(--severity-low)' },
+  critical: { label: 'Critical', color: severityStyles.critical.color },
+  high: { label: 'High', color: severityStyles.high.color },
+  moderate: { label: 'Moderate', color: severityStyles.moderate.color },
+  low: { label: 'Low', color: severityStyles.low.color },
   unrated: { label: 'Unrated', color: 'var(--muted-foreground)' },
 } satisfies ChartConfig;
 const SEVERITY_KEYS = Object.keys(
