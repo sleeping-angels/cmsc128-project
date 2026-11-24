@@ -8,7 +8,7 @@ Lets responders send advisories to residents and track delivery (EP5).
 
 ## Endpoints
 
-- `GET /broadcasts/advisories` (alias `/broadcasts/advisories/recent`): the five most recently sent advisories, newest first, as `recentAdvisorySchema`. Needs a responder or admin.
+- `GET /broadcasts/advisories` (alias `/broadcasts/advisories/recent`): the five most recently sent advisories, newest first, as `broadcastSummarySchema`. Each carries `deliveries`, its `BroadcastDelivery` count per status. Needs a responder or admin.
 
 ## Dashboard
 

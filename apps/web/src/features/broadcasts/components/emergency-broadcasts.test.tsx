@@ -20,6 +20,7 @@ function renderWorkspace() {
         'Residents in high-risk zones are advised to prepare for possible evacuation.',
       sentAt: new Date('2026-09-03T06:09:00.000Z'),
       createdBy: { id: 'responder-1', name: 'Another Lloyd Magana' },
+      deliveries: { queued: 0, sent: 0, failed: 0, outside_window: 0 },
     },
     {
       id: '1b9a3f4e-8c1d-4e2a-9f6b-1c2d3e4f5a6b',
@@ -28,6 +29,7 @@ function renderWorkspace() {
         'Road monitoring in progress. Expect rerouting along main thoroughfares.',
       sentAt: new Date('2026-04-04T04:58:00.000Z'),
       createdBy: { id: 'responder-2', name: 'Response team assigned' },
+      deliveries: { queued: 0, sent: 0, failed: 0, outside_window: 0 },
     },
   ]);
 
