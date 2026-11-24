@@ -6,8 +6,10 @@ import {
   openReportStatusSchema,
   type ReportFeedItem,
   type ReportSummary,
+  type ReportTrends,
   type ResponseTimes,
   type SeverityLevel,
+  type TrendRange,
 } from '@repo/shared';
 import { TriageRepository } from './triage.repository.js';
 
@@ -27,6 +29,37 @@ export const ATTENTION_LIMIT = 3;
 
 /** The period response times cover, in days. */
 export const RESPONSE_TIME_DAYS = 7;
+
+/** How many barangays the trends list. */
+export const TOP_BARANGAYS = 8;
+
+const HOUR_MS = 60 * MINUTE_MS;
+const DAY_MS = 24 * HOUR_MS;
+
+/** Each range as a count of periods of a size: 24 hours, or N days. */
+const TREND_PERIODS: Record<TrendRange, { size: number; count: number }> = {
+  '24h': { size: HOUR_MS, count: 24 },
+  '7d': { size: DAY_MS, count: 7 },
+  '30d': { size: DAY_MS, count: 30 },
+  '90d': { size: DAY_MS, count: 90 },
+};
+
+type SeverityCounts = Record<SeverityLevel | 'unrated', number>;
+
+function emptySeverityCounts(): SeverityCounts {
+  return { low: 0, moderate: 0, high: 0, critical: 0, unrated: 0 };
+}
+
+/** Counts per key, most first; ties keep alphabetical order. */
+function rank(keys: (string | null)[]) {
+  const counts = new Map<string | null, number>();
+  for (const key of keys) counts.set(key, (counts.get(key) ?? 0) + 1);
+  return [...counts]
+    .map(([key, count]) => ({ key, count }))
+    .sort(
+      (a, b) => b.count - a.count || (a.key ?? '').localeCompare(b.key ?? ''),
+    );
+}
 
 /** Most urgent first; a report without a severity sits with moderate. */
 const SEVERITY_RANK: Record<SeverityLevel | 'unrated', number> = {
@@ -185,6 +218,55 @@ export class ReportInsightsService {
       toValidate: summarize('toValidate'),
       toDispatch: summarize('toDispatch'),
       toHelp: summarize('toHelp'),
+    };
+  }
+
+  /**
+   * Reports created in the range, except invalid ones: per hour (24h) or
+   * Philippine day, and by severity, incident type and barangay.
+   */
+  async trends(range: TrendRange, now = new Date()): Promise<ReportTrends> {
+    const { size, count } = TREND_PERIODS[range];
+    // The current hour or day is the last period.
+    const current =
+      size === HOUR_MS
+        ? Math.floor(now.getTime() / HOUR_MS) * HOUR_MS
+        : startOfPhilippineDay(now).getTime();
+    const since = current - (count - 1) * size;
+
+    const rows = await this.repository.findForTrends(new Date(since));
+
+    const overTime = Array.from({ length: count }, (_, i) => ({
+      start: new Date(since + i * size),
+      counts: emptySeverityCounts(),
+    }));
+    const bySeverity = emptySeverityCounts();
+    for (const row of rows) {
+      const severity = row.severity ?? 'unrated';
+      bySeverity[severity] += 1;
+      const period =
+        overTime[Math.floor((row.createdAt.getTime() - since) / size)];
+      if (period) period.counts[severity] += 1;
+    }
+
+    return {
+      range,
+      total: rows.length,
+      overTime,
+      bySeverity,
+      byType: rank(rows.map((row) => row.incidentType?.code ?? null)).map(
+        ({ key, count }) => ({
+          incidentType:
+            rows.find((row) => row.incidentType?.code === key)?.incidentType ??
+            null,
+          count,
+        }),
+      ),
+      byBarangay: rank(
+        rows.flatMap((row) => (row.barangay ? [row.barangay] : [])),
+      )
+        .slice(0, TOP_BARANGAYS)
+        .map(({ key, count }) => ({ name: key!, count })),
     };
   }
 }

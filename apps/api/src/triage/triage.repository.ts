@@ -7,10 +7,15 @@ import {
   type ReportStatus,
   type SeverityLevel,
 } from '@repo/shared';
-import { and, count, eq, gte, inArray, sql, type SQL } from 'drizzle-orm';
+import { and, count, eq, gte, inArray, ne, sql, type SQL } from 'drizzle-orm';
 import type { Database } from '../database/client.js';
 import { DB } from '../database/database.module.js';
-import { report, reportEdit } from '../database/schema/index.js';
+import {
+  barangay,
+  incidentType,
+  report,
+  reportEdit,
+} from '../database/schema/index.js';
 
 /**
  * Report columns the feed and the detail both hide: internal links and the
@@ -171,6 +176,34 @@ export class TriageRepository {
         ),
       )
       .orderBy(reportEdit.editedAt);
+  }
+
+  /** Reports created at or after `since`, except invalid ones, for the trend charts. */
+  async findForTrends(since: Date): Promise<
+    {
+      createdAt: Date;
+      severity: SeverityLevel | null;
+      incidentType: { code: string; name: string } | null;
+      barangay: string | null;
+    }[]
+  > {
+    const rows = await this.db
+      .select({
+        createdAt: report.createdAt,
+        severity: report.severity,
+        typeCode: incidentType.code,
+        typeName: incidentType.name,
+        barangay: barangay.name,
+      })
+      .from(report)
+      .leftJoin(incidentType, eq(incidentType.id, report.incidentTypeId))
+      .leftJoin(barangay, eq(barangay.id, report.barangayId))
+      .where(and(gte(report.createdAt, since), ne(report.status, 'invalid')));
+    return rows.map(({ typeCode, typeName, ...row }) => ({
+      ...row,
+      incidentType:
+        typeCode && typeName ? { code: typeCode, name: typeName } : null,
+    }));
   }
 
   private async findFeedItems(where?: SQL): Promise<ReportFeedItem[]> {

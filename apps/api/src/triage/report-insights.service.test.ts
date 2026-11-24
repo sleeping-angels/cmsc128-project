@@ -234,3 +234,85 @@ describe('ReportInsightsService.responseTimes', () => {
     expect(times.toHelp.minutes).not.toBeNull();
   });
 });
+
+describe('ReportInsightsService.trends', () => {
+  const fire = { id: 'type-2', code: 'fire', name: 'Fire' };
+  const row = (
+    createdAt: string,
+    overrides: Partial<{
+      severity: ReportFeedItem['severity'];
+      incidentType: { code: string; name: string } | null;
+      barangay: string | null;
+    }> = {},
+  ) => ({
+    createdAt: new Date(createdAt),
+    severity: 'moderate' as const,
+    incidentType: flood as { code: string; name: string } | null,
+    barangay: 'Tacas',
+    ...overrides,
+  });
+
+  it('counts reports per Philippine day, from six days back through today', async () => {
+    // now is 16:00 on Oct 29 in Manila; that day starts at 16:00 UTC on Oct 28.
+    const repository = {
+      findForTrends: vi
+        .fn()
+        .mockResolvedValue([
+          row('2026-10-28T16:00:00.000Z', { severity: 'critical' }),
+          row('2026-10-28T15:59:00.000Z', { severity: null }),
+        ]),
+    };
+
+    const trends = await service(repository).trends('7d', now);
+
+    expect(repository.findForTrends).toHaveBeenCalledWith(
+      new Date('2026-10-22T16:00:00.000Z'),
+    );
+    expect(trends.overTime).toHaveLength(7);
+    expect(trends.overTime[6]!.start.toISOString()).toBe(
+      '2026-10-28T16:00:00.000Z',
+    );
+    expect(trends.overTime[6]!.counts.critical).toBe(1);
+    expect(trends.overTime[5]!.counts.unrated).toBe(1);
+    expect(trends.bySeverity).toMatchObject({ critical: 1, unrated: 1 });
+    expect(trends.total).toBe(2);
+  });
+
+  it('counts per hour over the last 24 hours', async () => {
+    const trends = await service({
+      findForTrends: vi
+        .fn()
+        .mockResolvedValue([row('2026-10-29T07:59:00.000Z')]),
+    }).trends('24h', now);
+
+    expect(trends.overTime).toHaveLength(24);
+    expect(trends.overTime[0]!.start.toISOString()).toBe(
+      '2026-10-28T09:00:00.000Z',
+    );
+    expect(trends.overTime[22]!.counts.moderate).toBe(1);
+  });
+
+  it('ranks types with unclassified ones, and the top barangays without unknown ones', async () => {
+    const trends = await service({
+      findForTrends: vi.fn().mockResolvedValue([
+        row(now.toISOString(), { incidentType: fire, barangay: 'Mat-y' }),
+        row(now.toISOString(), { incidentType: fire, barangay: null }),
+        row(now.toISOString(), { incidentType: null }),
+        ...Array.from({ length: 9 }, (_, i) =>
+          row(now.toISOString(), {
+            incidentType: flood,
+            barangay: `B${i}`,
+          }),
+        ),
+      ]),
+    }).trends('7d', now);
+
+    expect(trends.byType).toEqual([
+      { incidentType: flood, count: 9 },
+      { incidentType: fire, count: 2 },
+      { incidentType: null, count: 1 },
+    ]);
+    expect(trends.byBarangay).toHaveLength(8);
+    expect(trends.byBarangay.map((b) => b.name)).not.toContain(null);
+  });
+});

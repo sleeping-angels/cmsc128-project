@@ -1,10 +1,18 @@
-import { Controller, Get, NotFoundException, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+  Query,
+} from '@nestjs/common';
 import {
   attentionQueueSchema,
   reportDetailSchema,
   reportFeedItemSchema,
   reportIdParamsSchema,
   reportSummarySchema,
+  reportTrendsQuerySchema,
+  reportTrendsSchema,
   responseTimesSchema,
 } from '@repo/shared';
 import { createZodDto, ZodResponse } from 'nestjs-zod';
@@ -21,6 +29,10 @@ class ReportDetailDto extends createZodDto(reportDetailSchema, {
 }) {}
 class ReportSummaryDto extends createZodDto(reportSummarySchema) {}
 class ResponseTimesDto extends createZodDto(responseTimesSchema) {}
+class ReportTrendsDto extends createZodDto(reportTrendsSchema, {
+  codec: true,
+}) {}
+class ReportTrendsQueryDto extends createZodDto(reportTrendsQuerySchema) {}
 class AttentionQueueDto extends createZodDto(attentionQueueSchema, {
   codec: true,
 }) {}
@@ -66,6 +78,13 @@ export class ReportsController {
   @ZodResponse({ type: ResponseTimesDto })
   responseTimes() {
     return this.insights.responseTimes();
+  }
+
+  /** Report counts over a range, for the trend charts; `?range=7d` by default. */
+  @Get('trends')
+  @ZodResponse({ type: ReportTrendsDto })
+  trends(@Query() { range }: ReportTrendsQueryDto) {
+    return this.insights.trends(range);
   }
 
   @Get(':id')

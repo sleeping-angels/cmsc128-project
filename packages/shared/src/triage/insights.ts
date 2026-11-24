@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { stringToDate } from '../codecs.js';
 import { reportStatusSchema, severityLevelSchema } from '../enums.js';
 import { reportFeedItemSchema } from './report.js';
 
@@ -12,15 +13,15 @@ export type OpenReportStatus = z.infer<typeof openReportStatusSchema>;
 
 const count = z.int().min(0);
 
+/** A severity, or `unrated` for a report without one yet. */
+const severityKeySchema = z.enum([...severityLevelSchema.options, 'unrated']);
+
 /** Report counts for the dashboard home. */
 export const reportSummarySchema = z.object({
   /** Open reports per status. */
   openByStatus: z.record(openReportStatusSchema, count),
   /** Open reports per severity; `unrated` counts those without one yet. */
-  openBySeverity: z.record(
-    z.enum([...severityLevelSchema.options, 'unrated']),
-    count,
-  ),
+  openBySeverity: z.record(severityKeySchema, count),
   /** Reports created since midnight in the Philippines, of any status. */
   newToday: count,
 });
@@ -69,3 +70,38 @@ export const responseTimesSchema = z.object({
   toHelp: responseTimeSchema,
 });
 export type ResponseTimes = z.output<typeof responseTimesSchema>;
+
+/** The periods the trend charts cover. */
+export const trendRangeSchema = z.enum(['24h', '7d', '30d', '90d']);
+export type TrendRange = z.infer<typeof trendRangeSchema>;
+
+export const reportTrendsQuerySchema = z.object({
+  range: trendRangeSchema.default('7d'),
+});
+
+const typeCountSchema = z.object({
+  /** Null for reports without an incident type. */
+  incidentType: z.object({ code: z.string(), name: z.string() }).nullable(),
+  count,
+});
+
+const barangayCountSchema = z.object({ name: z.string(), count });
+
+/** Reports created in a range, excluding invalid ones, for the trend charts. */
+export const reportTrendsSchema = z.object({
+  range: trendRangeSchema,
+  total: count,
+  /** Per hour for 24h, per Philippine day otherwise; oldest first, empty periods included. */
+  overTime: z.array(
+    z.object({
+      start: stringToDate,
+      counts: z.record(severityKeySchema, count),
+    }),
+  ),
+  bySeverity: z.record(severityKeySchema, count),
+  /** Most reports first. */
+  byType: z.array(typeCountSchema),
+  /** The barangays with the most reports, most first; reports without one are left out. */
+  byBarangay: z.array(barangayCountSchema),
+});
+export type ReportTrends = z.output<typeof reportTrendsSchema>;
