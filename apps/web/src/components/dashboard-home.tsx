@@ -1,11 +1,10 @@
 import type { TrendRange } from '@repo/shared';
 import { useQuery } from '@tanstack/react-query';
-import { cn } from 'cn';
 import { greeting } from '@/lib/format';
 import { authQueries } from '@/features/auth';
 import { RecentBroadcasts } from '@/features/broadcasts';
 import { OpenReportsMinimap } from '@/features/map';
-import { useRealtimeConnected } from '@/features/realtime';
+import { LiveStatus } from '@/features/realtime';
 import {
   ReportQueue,
   ReportStats,
@@ -70,37 +69,5 @@ export function DashboardHome({
 
       <ReportTrends range={range} onRangeChange={onRangeChange} />
     </div>
-  );
-}
-
-/** Whether the page updates by itself; offline means numbers may be out of date. */
-function LiveStatus() {
-  const connected = useRealtimeConnected();
-  return (
-    <span
-      role="status"
-      className={cn(
-        'flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium',
-        connected ? 'text-success' : 'text-warning',
-      )}
-      title={
-        connected
-          ? 'New reports appear here automatically.'
-          : 'Reconnecting. Numbers may be out of date until then.'
-      }
-    >
-      <span className="relative flex size-2">
-        {connected && (
-          <span className="absolute inline-flex size-full animate-ping rounded-full bg-success opacity-60 motion-reduce:hidden" />
-        )}
-        <span
-          className={cn(
-            'relative inline-flex size-2 rounded-full',
-            connected ? 'bg-success' : 'bg-warning',
-          )}
-        />
-      </span>
-      {connected ? 'Live' : 'Offline, reconnecting…'}
-    </span>
   );
 }
