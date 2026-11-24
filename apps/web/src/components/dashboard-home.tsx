@@ -1,6 +1,6 @@
 import type { TrendRange } from '@repo/shared';
 import { useQuery } from '@tanstack/react-query';
-import { greeting } from '@/lib/format';
+import { greeting, TIME_ZONE } from '@/lib/format';
 import { authQueries } from '@/features/auth';
 import { RecentBroadcasts } from '@/features/broadcasts';
 import { OpenReportsMinimap } from '@/features/map';
@@ -12,8 +12,6 @@ import {
   ResponseTimes,
   useReportLiveUpdates,
 } from '@/features/triage';
-
-const TIME_ZONE = 'Asia/Manila';
 
 /**
  * `/dashboard`: what needs a responder now, where, and how things are going.

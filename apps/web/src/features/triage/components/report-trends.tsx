@@ -43,6 +43,7 @@ import {
   EmptyTitle,
 } from '@/components/ui/empty';
 import { Skeleton } from '@/components/ui/skeleton';
+import { TIME_ZONE } from '@/lib/format';
 import { incidentTypeIcon } from '@/lib/incident-types';
 import { severityStyles } from '@/lib/report-states';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
@@ -54,8 +55,6 @@ const RANGES: Record<TrendRange, { short: string; long: string }> = {
   '30d': { short: '30 days', long: 'last 30 days' },
   '90d': { short: '90 days', long: 'last 90 days' },
 };
-
-const TIME_ZONE = 'Asia/Manila';
 
 // Colors come from the report state tokens in index.css, so charts match the badges.
 // Most severe first; stacked bars draw the first key at the bottom.

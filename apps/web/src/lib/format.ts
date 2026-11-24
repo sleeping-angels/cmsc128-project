@@ -1,6 +1,9 @@
 import type { Language } from '@repo/shared';
 import { formatDistanceToNowStrict } from 'date-fns';
 
+/** MDRRMO Miagao's time zone; show times of day and dates in it, whatever the browser's is. */
+export const TIME_ZONE = 'Asia/Manila';
+
 /** Language names; ISO codes don't title-case into them. */
 export const LANGUAGE_LABELS: Record<Language, string> = {
   hil: 'Hiligaynon',
@@ -53,7 +56,7 @@ export function formatTime(date: Date) {
 export function greeting(now: Date) {
   const hour = Number(
     now.toLocaleString('en-PH', {
-      timeZone: 'Asia/Manila',
+      timeZone: TIME_ZONE,
       hour: 'numeric',
       hourCycle: 'h23',
     }),
