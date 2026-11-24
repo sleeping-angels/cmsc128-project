@@ -27,7 +27,7 @@ Both need a signed-in responder or admin (`@Roles` on the controller, #41); any 
 
 Triage exports these widgets for `/dashboard`:
 
-- `ReportStats`: open reports, new today, pending review, and critical and open, from `reportQueries.summary()`.
+- `ReportStats`: open reports (split by status), new today, pending review and critical, from `reportQueries.summary()`, each with a line saying what it counts. Critical turns red above zero.
 - `OpenReportCharts`: open reports by status and by severity as shadcn bar charts, colored with the report state tokens.
 - `ReportQueue`: two tabs. Needs attention lists `reportQueries.attention()` with each report's reasons in plain words; Latest lists the eight newest from `reportQueries.feed()` (sharing the incidents page's cache). Rows open the quick view at `/dashboard/incidents?report=<id>`, and a report under five minutes old reads New.
 - `ResponseTimes`: the typical (median) time from report to confirmed, confirmed to help sent and report to help sent, with the change from last week.

@@ -17,6 +17,9 @@ describe('ReportStats', () => {
     expect(screen.getByText('3')).toBeDefined();
     expect(screen.getByText('4')).toBeDefined();
     expect(screen.getByText('2')).toBeDefined();
+    expect(
+      screen.getByText('4 pending · 2 validated · 1 dispatched'),
+    ).toBeDefined();
   });
 
   it('offers a retry when the counts fail', async () => {
