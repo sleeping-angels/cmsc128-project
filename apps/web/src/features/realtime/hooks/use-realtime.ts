@@ -26,6 +26,21 @@ export function useRealtimeEvent<T>(
   }, [event]);
 }
 
+/**
+ * Runs `handler` after the connection comes back from a drop, so pages can
+ * refetch what they missed: the server doesn't replay events sent while down.
+ */
+export function useRealtimeReconnect(handler: () => void) {
+  const onReconnect = useEffectEvent(handler);
+
+  useEffect(() => {
+    socket.io.on('reconnect', onReconnect);
+    return () => {
+      socket.io.off('reconnect', onReconnect);
+    };
+  }, []);
+}
+
 function subscribe(onChange: () => void) {
   socket.on('connect', onChange);
   socket.on('disconnect', onChange);

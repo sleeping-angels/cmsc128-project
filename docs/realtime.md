@@ -47,3 +47,5 @@ useRealtimeEvent<ReportFeedItem>('report:created', () => {
 Prefer invalidating or patching TanStack Query caches over keeping separate state.
 
 `useRealtimeConnected()` returns whether the socket is connected. `<LiveStatus />` shows it as a badge: Live while connected, a reconnecting warning otherwise. The dashboard home uses it.
+
+`useRealtimeReconnect(handler)` runs `handler` after the socket recovers from a drop. Events sent while it was down are lost, so use it to refetch.
