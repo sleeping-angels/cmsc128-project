@@ -31,12 +31,17 @@ export const reportQueries = {
         api.get('/triage/reports/summary', reportSummarySchema, { signal }),
     }),
 
-  /** Open reports that need a responder, most urgent first. */
+  /**
+   * Open reports that need a responder, most urgent first. Refetched every
+   * minute because reports join the queue by aging past the review window,
+   * which no report event announces.
+   */
   attention: () =>
     queryOptions({
       queryKey: [...reportQueries.all(), 'attention'],
       queryFn: ({ signal }) =>
         api.get('/triage/reports/attention', attentionQueueSchema, { signal }),
+      refetchInterval: 60_000,
     }),
 
   /** Median response times this week and last. */
