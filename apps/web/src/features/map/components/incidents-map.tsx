@@ -1,4 +1,5 @@
 import {
+  openReportStatusSchema,
   type ReportFeedItem,
   type ReportStatus,
   reportStatusSchema,
@@ -6,9 +7,7 @@ import {
   severityLevelSchema,
 } from '@repo/shared';
 import { useQuery } from '@tanstack/react-query';
-import { cn } from 'cn';
 import { useEffect, useMemo, useState } from 'react';
-import { severityStyles } from '@/lib/report-states';
 import { IncidentTypeLabel } from '@/components/incident-type-label';
 import { SeverityBadge, StatusBadge } from '@/components/report-badges';
 import { Button } from '@/components/ui/button';
@@ -32,17 +31,14 @@ import { reportQueries } from '@/features/triage';
 import { label } from '@/lib/format';
 // Aliased: `Map` would shadow the built-in Map that typesIn uses.
 import { Map as AppMap } from '@/components/map';
-import { ReportMarker } from '@/components/report-marker';
-import { ReportPopup } from './report-popup';
+import { ReportPins } from './report-pins';
+import { SeverityLegend } from './severity-legend';
 import { MapControls, useMap } from '@/components/ui/map';
 
 const FOCUS_ZOOM = 16;
 
 /* Most severe first, for the filter and legend. */
 const SEVERITIES = severityLevelSchema.options.toReversed();
-
-/* Statuses counted as open. */
-const OPEN_STATUSES: ReportStatus[] = ['pending', 'validated', 'dispatched'];
 
 /* Date filter choices; null days means all time. */
 const DATE_RANGES = [
@@ -63,7 +59,7 @@ type Filters = {
 const DEFAULT_FILTERS: Filters = {
   types: [],
   severities: [],
-  statuses: OPEN_STATUSES,
+  statuses: [...openReportStatusSchema.options],
   date: '7',
 };
 
@@ -129,19 +125,7 @@ export function IncidentsMap({ focusId }: { focusId?: string }) {
   return (
     <div className="relative -m-4 h-[calc(100%+2rem)] overflow-hidden md:rounded-b-xl">
       <AppMap className="size-full">
-        {pinned.map(
-          (report) =>
-            report.location && (
-              <ReportMarker
-                key={report.id}
-                report={report}
-                lngLat={report.location}
-                focused={report.id === focusId}
-              >
-                <ReportPopup report={report} />
-              </ReportMarker>
-            ),
-        )}
+        <ReportPins reports={pinned} focusId={focusId} />
         {focusPoint && <FlyTo lngLat={focusPoint} />}
         <MapControls showCompass showLocate showFullscreen />
       </AppMap>
@@ -207,20 +191,7 @@ export function IncidentsMap({ focusId }: { focusId?: string }) {
         )}
       </div>
 
-      <div className="absolute bottom-3 left-3 flex flex-col gap-1.5 rounded-lg border bg-background px-3 py-2.5 text-xs shadow-sm">
-        <span className="font-medium text-muted-foreground">Severity</span>
-        {SEVERITIES.map((severity) => (
-          <span key={severity} className="flex items-center gap-1.5">
-            <span
-              className={cn(
-                'size-2.5 rounded-full',
-                severityStyles[severity].solid,
-              )}
-            />
-            {label(severity)}
-          </span>
-        ))}
-      </div>
+      <SeverityLegend className="absolute bottom-3 left-3" />
     </div>
   );
 }

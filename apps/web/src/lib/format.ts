@@ -1,6 +1,9 @@
 import type { Language } from '@repo/shared';
 import { formatDistanceToNowStrict } from 'date-fns';
 
+/** MDRRMO Miagao's time zone; show times of day and dates in it, whatever the browser's is. */
+export const TIME_ZONE = 'Asia/Manila';
+
 /** Language names; ISO codes don't title-case into them. */
 export const LANGUAGE_LABELS: Record<Language, string> = {
   hil: 'Hiligaynon',
@@ -47,4 +50,18 @@ export function formatTime(date: Date) {
     dateStyle: 'medium',
     timeStyle: 'short',
   });
+}
+
+/** "Good morning", "Good afternoon" or "Good evening" for the hour in the Philippines. */
+export function greeting(now: Date) {
+  const hour = Number(
+    now.toLocaleString('en-PH', {
+      timeZone: TIME_ZONE,
+      hour: 'numeric',
+      hourCycle: 'h23',
+    }),
+  );
+  if (hour >= 5 && hour < 12) return 'Good morning';
+  if (hour >= 12 && hour < 18) return 'Good afternoon';
+  return 'Good evening';
 }

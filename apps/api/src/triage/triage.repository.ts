@@ -4,11 +4,18 @@ import {
   parseConfidenceSchema,
   type ReportDetail,
   type ReportFeedItem,
+  type ReportStatus,
+  type SeverityLevel,
 } from '@repo/shared';
-import { eq, type SQL } from 'drizzle-orm';
+import { and, count, eq, gte, inArray, ne, sql, type SQL } from 'drizzle-orm';
 import type { Database } from '../database/client.js';
 import { DB } from '../database/database.module.js';
-import { report } from '../database/schema/index.js';
+import {
+  barangay,
+  incidentType,
+  report,
+  reportEdit,
+} from '../database/schema/index.js';
 
 /**
  * Report columns the feed and the detail both hide: internal links and the
@@ -47,6 +54,11 @@ export class TriageRepository {
   /** Every report as the feed shows it, newest first. */
   findFeed(): Promise<ReportFeedItem[]> {
     return this.findFeedItems();
+  }
+
+  /** Reports in the given statuses as the feed shows them, newest first. */
+  findFeedByStatus(statuses: ReportStatus[]): Promise<ReportFeedItem[]> {
+    return this.findFeedItems(inArray(report.status, statuses));
   }
 
   /** One report as the feed shows it, or null. */
@@ -99,6 +111,99 @@ export class TriageRepository {
         attachments: checkAttachments(m.attachments),
       })),
     };
+  }
+
+  /** Report counts per status and severity, for reports in the given statuses. */
+  countByStatusAndSeverity(statuses: ReportStatus[]): Promise<
+    {
+      status: ReportStatus;
+      severity: SeverityLevel | null;
+      count: number;
+    }[]
+  > {
+    return this.db
+      .select({
+        status: report.status,
+        severity: report.severity,
+        count: count(),
+      })
+      .from(report)
+      .where(inArray(report.status, statuses))
+      .groupBy(report.status, report.severity);
+  }
+
+  /** How many reports were created at or after `since`. */
+  async countCreatedSince(since: Date): Promise<number> {
+    const [row] = await this.db
+      .select({ count: count() })
+      .from(report)
+      .where(gte(report.createdAt, since));
+    return row?.count ?? 0;
+  }
+
+  /**
+   * Every status change of the reports with one at or after `since`, oldest
+   * first, with when each report came in.
+   */
+  findStatusChanges(since: Date): Promise<
+    {
+      reportId: string;
+      reportCreatedAt: Date;
+      status: string;
+      changedAt: Date;
+    }[]
+  > {
+    const changed = this.db
+      .select({ id: reportEdit.reportId })
+      .from(reportEdit)
+      .where(
+        and(eq(reportEdit.field, 'status'), gte(reportEdit.editedAt, since)),
+      );
+    return this.db
+      .select({
+        reportId: reportEdit.reportId,
+        reportCreatedAt: report.createdAt,
+        // new_value is jsonb; #>> '{}' unwraps the JSON string.
+        status: sql<string>`${reportEdit.newValue} #>> '{}'`,
+        changedAt: reportEdit.editedAt,
+      })
+      .from(reportEdit)
+      .innerJoin(report, eq(report.id, reportEdit.reportId))
+      .where(
+        and(
+          eq(reportEdit.field, 'status'),
+          inArray(reportEdit.reportId, changed),
+        ),
+      )
+      .orderBy(reportEdit.editedAt);
+  }
+
+  /** Reports created at or after `since`, except invalid ones, for the trend charts. */
+  async findForTrends(since: Date): Promise<
+    {
+      createdAt: Date;
+      severity: SeverityLevel | null;
+      incidentType: { code: string; name: string } | null;
+      barangay: string | null;
+    }[]
+  > {
+    const rows = await this.db
+      .select({
+        createdAt: report.createdAt,
+        severity: report.severity,
+        typeCode: incidentType.code,
+        typeName: incidentType.name,
+        barangay: barangay.name,
+      })
+      .from(report)
+      .leftJoin(incidentType, eq(incidentType.id, report.incidentTypeId))
+      .leftJoin(barangay, eq(barangay.id, report.barangayId))
+      .where(and(gte(report.createdAt, since), ne(report.status, 'invalid')));
+    return rows.map(({ typeCode, typeName, ...row }) => ({
+      ...row,
+      incidentType:
+        typeCode && typeName ? { code: typeCode, name: typeName } : null,
+    }));
   }
 
   private async findFeedItems(where?: SQL): Promise<ReportFeedItem[]> {

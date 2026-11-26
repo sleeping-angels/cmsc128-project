@@ -14,6 +14,7 @@ import {
   vi,
 } from 'vitest';
 import { ReportsController } from './reports.controller.js';
+import { ReportInsightsService } from './report-insights.service.js';
 import { ReportsService } from './reports.service.js';
 
 vi.mock('../config/env.js', () => ({ env: {} }));
@@ -53,13 +54,23 @@ const detail: ReportDetail = {
 
 describe('/triage/reports', () => {
   let app: INestApplication;
-  const reports = { findDetail: vi.fn(), findFeed: vi.fn() };
+  const reports = {
+    findDetail: vi.fn(),
+    findFeed: vi.fn(),
+  };
+  const insights = {
+    summarize: vi.fn(),
+    attention: vi.fn(),
+    responseTimes: vi.fn(),
+    trends: vi.fn(),
+  };
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       controllers: [ReportsController],
       providers: [
         { provide: ReportsService, useValue: reports },
+        { provide: ReportInsightsService, useValue: insights },
         { provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor },
         // Same global pipe as AppModule, so the params DTO validates the ID.
         { provide: APP_PIPE, useClass: ZodValidationPipe },
@@ -72,6 +83,10 @@ describe('/triage/reports', () => {
   beforeEach(() => {
     reports.findDetail.mockReset();
     reports.findFeed.mockReset();
+    insights.summarize.mockReset();
+    insights.attention.mockReset();
+    insights.responseTimes.mockReset();
+    insights.trends.mockReset();
   });
 
   afterAll(async () => {
@@ -115,5 +130,87 @@ describe('/triage/reports', () => {
     expect(res.status).toBe(200);
     expect(res.body[0].firstMessage).toBe('tulong');
     expect(res.body[0].createdAt).toBe(at.toISOString());
+  });
+
+  it('returns the summary instead of treating "summary" as an ID', async () => {
+    const summary = {
+      openByStatus: { pending: 2, validated: 1, dispatched: 0 },
+      openBySeverity: { low: 0, moderate: 1, high: 1, critical: 0, unrated: 1 },
+      newToday: 3,
+    };
+    insights.summarize.mockResolvedValue(summary);
+    const res = await request(app.getHttpServer()).get(
+      '/triage/reports/summary',
+    );
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(summary);
+    expect(reports.findDetail).not.toHaveBeenCalled();
+  });
+
+  it('returns the attention queue with reasons and ISO dates', async () => {
+    const { resident, victims, messages, ...rest } = detail;
+    insights.attention.mockResolvedValue({
+      total: 1,
+      reports: [
+        {
+          ...rest,
+          resident: { id: resident!.id, name: resident!.name },
+          victimCount: victims.length,
+          firstMessage: messages[0]!.body,
+          reasons: ['urgent'],
+        },
+      ],
+    });
+    const res = await request(app.getHttpServer()).get(
+      '/triage/reports/attention',
+    );
+    expect(res.status).toBe(200);
+    expect(res.body.total).toBe(1);
+    expect(res.body.reports[0].reasons).toEqual(['urgent']);
+    expect(res.body.reports[0].createdAt).toBe(at.toISOString());
+  });
+
+  it('returns response times, null where there is no data', async () => {
+    const times = {
+      days: 7,
+      toValidate: { minutes: 12.5, previousMinutes: null },
+      toDispatch: { minutes: null, previousMinutes: null },
+      toHelp: { minutes: 40, previousMinutes: 55 },
+    };
+    insights.responseTimes.mockResolvedValue(times);
+    const res = await request(app.getHttpServer()).get(
+      '/triage/reports/response-times',
+    );
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(times);
+  });
+
+  it('returns trends for the given range, 7 days by default', async () => {
+    const counts = { low: 0, moderate: 1, high: 0, critical: 0, unrated: 0 };
+    insights.trends.mockResolvedValue({
+      range: '24h',
+      total: 1,
+      overTime: [{ start: at, counts }],
+      bySeverity: counts,
+      byType: [{ incidentType: null, count: 1 }],
+      byBarangay: [],
+    });
+
+    const res = await request(app.getHttpServer()).get(
+      '/triage/reports/trends?range=24h',
+    );
+    expect(res.status).toBe(200);
+    expect(res.body.overTime[0].start).toBe(at.toISOString());
+    expect(insights.trends).toHaveBeenCalledWith('24h');
+
+    await request(app.getHttpServer()).get('/triage/reports/trends');
+    expect(insights.trends).toHaveBeenLastCalledWith('7d');
+  });
+
+  it('returns 400 for an unknown range', async () => {
+    const res = await request(app.getHttpServer()).get(
+      '/triage/reports/trends?range=1y',
+    );
+    expect(res.status).toBe(400);
   });
 });

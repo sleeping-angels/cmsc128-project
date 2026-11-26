@@ -1,4 +1,4 @@
-import { useEffect, useEffectEvent } from 'react';
+import { useEffect, useEffectEvent, useSyncExternalStore } from 'react';
 import { socket } from '../socket';
 
 /** Keeps the realtime connection open while the calling component is mounted. */
@@ -24,4 +24,33 @@ export function useRealtimeEvent<T>(
       socket.off(event, onEvent);
     };
   }, [event]);
+}
+
+/**
+ * Runs `handler` after the connection comes back from a drop, so pages can
+ * refetch what they missed: the server doesn't replay events sent while down.
+ */
+export function useRealtimeReconnect(handler: () => void) {
+  const onReconnect = useEffectEvent(handler);
+
+  useEffect(() => {
+    socket.io.on('reconnect', onReconnect);
+    return () => {
+      socket.io.off('reconnect', onReconnect);
+    };
+  }, []);
+}
+
+function subscribe(onChange: () => void) {
+  socket.on('connect', onChange);
+  socket.on('disconnect', onChange);
+  return () => {
+    socket.off('connect', onChange);
+    socket.off('disconnect', onChange);
+  };
+}
+
+/** Whether the realtime connection is up, so pages can say if they're live. */
+export function useRealtimeConnected() {
+  return useSyncExternalStore(subscribe, () => socket.connected);
 }

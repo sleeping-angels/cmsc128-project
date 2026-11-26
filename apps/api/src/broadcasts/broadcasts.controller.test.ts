@@ -27,6 +27,7 @@ const advisory: BroadcastSummary = {
   messageBody: 'Prepare for possible evacuation.',
   sentAt: at,
   createdBy: { id: 'responder-1', name: 'Maria Santos' },
+  deliveries: { queued: 1, sent: 12, failed: 2, outside_window: 0 },
 };
 
 describe('/broadcasts/advisories', () => {
